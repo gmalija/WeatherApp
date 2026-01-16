@@ -20,8 +20,8 @@ export function LocationSearchScreen() {
   const [results, setResults] = useState<Location[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const onSubmit = async () => {
-    const trimmed = value.trim();
+  const runSearch = async (query: string, { navigateOnSingle }: { navigateOnSingle: boolean }) => {
+    const trimmed = query.trim();
 
     if (!trimmed) {
       setError('Location is required');
@@ -41,19 +41,22 @@ export function LocationSearchScreen() {
         return;
       }
 
-      if (locations.length === 1) {
+      setResults(locations);
+
+      if (navigateOnSingle && locations.length === 1) {
         dispatch(fetchWeatherByLocation({ location: locations[0] }));
         navigation.goBack();
-        return;
       }
-
-      setResults(locations);
     } catch (err: any) {
       setError(err?.message ?? 'Failed to find location');
       setResults([]);
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const onSubmit = async () => {
+    await runSearch(value, { navigateOnSingle: true });
   };
 
   const onSelectLocation = (location: Location) => {
@@ -75,9 +78,13 @@ export function LocationSearchScreen() {
             if (error) {
               setError(null);
             }
-            if (results.length) {
+            if (!text.trim()) {
               setResults([]);
+              return;
             }
+            // Trigger a search-as-you-type experience so users see suggestions
+            // like "Cartagena de Indias" when typing "Car".
+            runSearch(text, { navigateOnSingle: false });
           }}
           placeholder='Madrid, España'
           keyboardType='default'
@@ -92,7 +99,7 @@ export function LocationSearchScreen() {
           <Text style={styles.buttonText}>{isSearching ? 'Searching...' : 'Search'}</Text>
         </Pressable>
 
-        {results.length > 1 && (
+        {results.length > 0 && (
           <View style={styles.resultsContainer}>
             <Text style={styles.resultsTitle}>Select a location</Text>
             <FlatList
