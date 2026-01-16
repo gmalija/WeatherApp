@@ -32,6 +32,26 @@ export const fetchWeatherByLocation = createAsyncThunk<WeatherForecast, { locati
   },
 );
 
+export const fetchWeatherByPlaceName = createAsyncThunk<WeatherForecast, { name: string }>(
+  'weather/fetchByPlaceName',
+  async ({ name }, thunkApi) => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      throw new Error('Location is required');
+    }
+
+    const state: any = thunkApi.getState();
+    const providerId: WeatherProviderId = state.weather.selectedProviderId;
+
+    const location = await weatherDependencies.geocodingService.searchFirstLocationByName(trimmed);
+    if (!location) {
+      throw new Error('Location not found');
+    }
+
+    return weatherDependencies.getWeatherByLocationUseCase.execute(location, providerId);
+  },
+);
+
 export const fetchWeatherForCurrentLocation = createAsyncThunk<WeatherForecast, void>(
   'weather/fetchForCurrentLocation',
   async (_, thunkApi) => {
@@ -61,7 +81,20 @@ const weatherSlice = createSlice({
         state.currentForecast = action.payload;
         state.currentLocation = action.payload.location;
       })
-      .addCase(fetchWeatherByLocation.rejected, (state, action) => {
+.addCase(fetchWeatherByLocation.rejected, (state, action) => {
+        state.status = 'error';
+        state.error = action.error.message ?? 'Failed to load weather';
+      })
+      .addCase(fetchWeatherByPlaceName.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchWeatherByPlaceName.fulfilled, (state, action) => {
+        state.status = 'success';
+        state.currentForecast = action.payload;
+        state.currentLocation = action.payload.location;
+      })
+      .addCase(fetchWeatherByPlaceName.rejected, (state, action) => {
         state.status = 'error';
         state.error = action.error.message ?? 'Failed to load weather';
       })

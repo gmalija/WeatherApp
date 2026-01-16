@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useAppDispatch } from '../../state/hooks';
 import { fetchWeatherByLocation } from '../../state/weatherSlice';
-import { parseLocationInput } from '../../validation/locationInputValidator';
 import type { RootStackParamList } from '../../../navigation/types';
+import type { Location } from '../../../domain/entities/Location';
+import { weatherDependencies } from '../../../application/weatherDependencies';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'>;
 
@@ -16,17 +17,47 @@ export function LocationSearchScreen() {
 
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<Location[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const onSubmit = () => {
-    const result = parseLocationInput(value);
+  const onSubmit = async () => {
+    const trimmed = value.trim();
 
-    if (!result.ok) {
-      setError(result.error);
+    if (!trimmed) {
+      setError('Location is required');
+      setResults([]);
       return;
     }
 
     setError(null);
-    dispatch(fetchWeatherByLocation({ location: result.location }));
+    setIsSearching(true);
+
+    try {
+      const locations = await weatherDependencies.geocodingService.searchLocationsByName(trimmed);
+
+      if (!locations.length) {
+        setError('Location not found');
+        setResults([]);
+        return;
+      }
+
+      if (locations.length === 1) {
+        dispatch(fetchWeatherByLocation({ location: locations[0] }));
+        navigation.goBack();
+        return;
+      }
+
+      setResults(locations);
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to find location');
+      setResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const onSelectLocation = (location: Location) => {
+    dispatch(fetchWeatherByLocation({ location }));
     navigation.goBack();
   };
 
@@ -36,7 +67,7 @@ export function LocationSearchScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={styles.label}>Enter coordinates</Text>
+        <Text style={styles.label}>Search location</Text>
         <TextInput
           value={value}
           onChangeText={(text) => {
@@ -44,9 +75,12 @@ export function LocationSearchScreen() {
             if (error) {
               setError(null);
             }
+            if (results.length) {
+              setResults([]);
+            }
           }}
-          placeholder='52.52,13.41'
-          keyboardType='numbers-and-punctuation'
+          placeholder='Madrid, España'
+          keyboardType='default'
           autoCapitalize='none'
           autoCorrect={false}
           style={styles.input}
@@ -55,8 +89,30 @@ export function LocationSearchScreen() {
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Pressable onPress={onSubmit} style={styles.button}>
-          <Text style={styles.buttonText}>Search</Text>
+          <Text style={styles.buttonText}>{isSearching ? 'Searching...' : 'Search'}</Text>
         </Pressable>
+
+        {results.length > 1 && (
+          <View style={styles.resultsContainer}>
+            <Text style={styles.resultsTitle}>Select a location</Text>
+            <FlatList
+              data={results}
+              keyExtractor={(item) => `${item.latitude},${item.longitude}`}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.resultItem}
+                  onPress={() => onSelectLocation(item)}
+                >
+                  <Text style={styles.resultName}>{item.name}</Text>
+                  <Text style={styles.resultCoords}>
+                    {item.latitude.toFixed(2)}, {item.longitude.toFixed(2)}
+                  </Text>
+                </Pressable>
+              )}
+              ItemSeparatorComponent={() => <View style={styles.resultSeparator} />}
+            />
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -100,5 +156,28 @@ const styles = StyleSheet.create({
     color: '#f9fafb',
     fontSize: 16,
     fontWeight: '600',
+  },
+  resultsContainer: {
+    marginTop: 24,
+  },
+  resultsTitle: {
+    fontSize: 14,
+    marginBottom: 8,
+    color: '#e5e7eb',
+  },
+  resultItem: {
+    paddingVertical: 8,
+  },
+  resultName: {
+    fontSize: 14,
+    color: '#e5e7eb',
+  },
+  resultCoords: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  resultSeparator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#374151',
   },
 });

@@ -13,7 +13,7 @@ export function WeatherSummaryCard({ forecast }: Props) {
   const { location, current } = forecast;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.colors.cardBackground }]}>\
+    <View style={[styles.card, { backgroundColor: theme.colors.cardBackground }]}>
       <Text style={[styles.location, { color: theme.colors.text }]}>{location.name}</Text>
       <Text style={[styles.provider, { color: theme.colors.mutedText }]}>{theme.label}</Text>
 
