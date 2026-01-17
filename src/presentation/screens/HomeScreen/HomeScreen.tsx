@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 
 import { useAppDispatch, useAppSelector } from '../../state/hooks';
-import { fetchWeatherForCurrentLocation } from '../../state/weatherSlice';
+import {
+  fetchWeatherByLocation,
+  fetchWeatherForCurrentLocation,
+} from '../../state/weatherSlice';
 import { WeatherSummaryCard } from '../../components/WeatherSummaryCard';
 import { DailyForecastList } from '../../components/DailyForecastList';
 import { getThemeForProvider } from '../../theme';
@@ -18,6 +21,23 @@ export function HomeScreen() {
   }, [dispatch, weather.currentForecast, weather.status]);
 
   const theme = getThemeForProvider(weather.selectedProviderId);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Reset refreshing state when loading completes
+  useEffect(() => {
+    if (weather.status !== 'loading' && isRefreshing) {
+      setIsRefreshing(false);
+    }
+  }, [weather.status, isRefreshing]);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    if (weather.currentLocation) {
+      dispatch(fetchWeatherByLocation({ location: weather.currentLocation }));
+    } else {
+      dispatch(fetchWeatherForCurrentLocation());
+    }
+  };
 
   let content: React.ReactNode = null;
 
@@ -36,7 +56,17 @@ export function HomeScreen() {
     );
   } else if (weather.currentForecast) {
     content = (
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.accent}
+          />
+        }
+      >
+        <Text style={[styles.refreshHint, { color: theme.colors.mutedText }]}>Pull down to refresh the forecast</Text>
         <WeatherSummaryCard forecast={weather.currentForecast} />
         <DailyForecastList
           providerId={weather.currentForecast.providerId}
@@ -72,6 +102,11 @@ const styles = StyleSheet.create({
   statusText: {
     marginTop: 12,
     fontSize: 14,
+  },
+  refreshHint: {
+    fontSize: 12,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   errorText: {
     fontSize: 14,
