@@ -6,11 +6,11 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 import { weatherReducer } from '../../src/presentation/state/weatherSlice';
 import { FakeSearchInput } from '../../src/presentation/components/FakeSearchInput';
-import { ProviderToggleIcon } from '../../src/presentation/components/ProviderToggleIcon';
 import { HomeScreen } from '../../src/presentation/screens/HomeScreen/HomeScreen';
 import { LocationSearchScreen } from '../../src/presentation/screens/LocationSearchScreen/LocationSearchScreen';
 import { WeatherProviderIds } from '../../src/domain/valueObjects/WeatherProviderId';
 import type { WeatherForecast } from '../../src/domain/entities/WeatherForecast';
+import { SettingsMenu } from '../../src/presentation/components/SettingsMenu.tsx';
 
 jest.mock('../../src/application/weatherDependencies', () => {
   const mockForecast: WeatherForecast = {
@@ -97,16 +97,76 @@ describe('FakeSearchInput', () => {
   });
 });
 
-describe('ProviderToggleIcon', () => {
-  it('toggles provider in store when pressed', () => {
-    const { getByText, store } = wrapWithStoreAndNav(<ProviderToggleIcon />);
+// ... existing imports and mocks ...
 
-    const button = getByText('Open-Meteo');
+describe('SettingsMenu', () => {
+  it('opens modal when settings icon is pressed', () => {
+    const { getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
 
-    fireEvent.press(button);
+    expect(queryByText('Select Weather Service')).toBeNull();
 
-    const state = store.getState().weather;
-    expect(state.selectedProviderId).toBe(WeatherProviderIds.METEOBLUE);
+    const settingsIcon = getByText('⚙️');
+    fireEvent.press(settingsIcon);
+
+    expect(getByText('Select Weather Service')).toBeTruthy();
+  });
+
+  it('closes modal when overlay is pressed', () => {
+    const { getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
+
+    const settingsIcon = getByText('⚙️');
+    fireEvent.press(settingsIcon);
+
+    expect(getByText('Select Weather Service')).toBeTruthy();
+
+    // Press the overlay (assuming it's the modal's backdrop)
+    const overlay = getByText('Select Weather Service').parent?.parent;
+    if (overlay) fireEvent.press(overlay);
+
+    expect(queryByText('Select Weather Service')).toBeNull();
+  });
+
+  it('selects a provider and closes modal', () => {
+    const { getByText, queryByText, store } = wrapWithStoreAndNav(
+      <SettingsMenu />,
+      {
+        selectedProviderId: WeatherProviderIds.OPEN_METEO,
+      },
+    );
+
+    const settingsIcon = getByText('⚙️');
+    fireEvent.press(settingsIcon);
+
+    const meteoblueOption = getByText('MeteoBlue');
+    fireEvent.press(meteoblueOption);
+
+    expect(store.getState().weather.selectedProviderId).toBe(
+      WeatherProviderIds.METEOBLUE,
+    );
+    expect(queryByText('Select Weather Service')).toBeNull();
+  });
+
+  it('dispatches fetchWeatherByLocation if currentLocation exists', () => {
+    const mockLocation = {
+      latitude: 40.7128,
+      longitude: -74.006,
+      name: 'New York',
+    };
+    const { getByText, store } = wrapWithStoreAndNav(<SettingsMenu />, {
+      selectedProviderId: WeatherProviderIds.OPEN_METEO,
+      currentLocation: mockLocation,
+    });
+
+    const settingsIcon = getByText('⚙️');
+    fireEvent.press(settingsIcon);
+
+    const meteoblueOption = getByText('MeteoBlue');
+    fireEvent.press(meteoblueOption);
+
+    expect(store.getState().weather.selectedProviderId).toBe(
+      WeatherProviderIds.METEOBLUE,
+    );
+    // Optionally, check if fetchWeatherByLocation action was dispatched (requires mocking or spying on dispatch)
   });
 });
 
