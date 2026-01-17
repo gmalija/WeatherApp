@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  RefreshControl,
+  useColorScheme,
+} from 'react-native';
 
 import { useAppDispatch, useAppSelector } from '../../state/hooks';
 import {
@@ -8,9 +16,10 @@ import {
 } from '../../state/weatherSlice';
 import { WeatherSummaryCard } from '../../components/WeatherSummaryCard';
 import { DailyForecastList } from '../../components/DailyForecastList';
-import { getThemeForProvider } from '../../theme';
+import { useTheme } from '../../theme/useTheme.tsx';
 
 export function HomeScreen() {
+  const theme = useTheme();
   const dispatch = useAppDispatch();
   const weather = useAppSelector((state) => state.weather);
 
@@ -19,8 +28,6 @@ export function HomeScreen() {
       dispatch(fetchWeatherForCurrentLocation());
     }
   }, [dispatch, weather.currentForecast, weather.status]);
-
-  const theme = getThemeForProvider(weather.selectedProviderId);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Reset refreshing state when loading completes
@@ -51,7 +58,14 @@ export function HomeScreen() {
   } else if (weather.status === 'error' && !weather.currentForecast) {
     content = (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>{weather.error ?? 'Failed to load weather'}</Text>
+        <Text
+          style={[
+            styles.errorText,
+            { color: theme.colors.error },
+          ]}
+        >
+          {weather.error ?? 'Failed to load weather'}
+        </Text>
       </View>
     );
   } else if (weather.currentForecast) {
@@ -110,7 +124,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: '#f97373',
     textAlign: 'center',
   },
 });

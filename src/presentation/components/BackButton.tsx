@@ -1,28 +1,28 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ArrowLeft } from 'lucide-react-native';
 
-import { useAppDispatch } from '../state/hooks';
-import { fetchWeatherForCurrentLocation } from '../state/weatherSlice';
 import type { RootStackParamList } from '../../navigation/types';
 import { useTheme } from '../theme/useTheme.tsx';
 
-type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'>;
+type Navigation = NativeStackNavigationProp<
+  RootStackParamList,
+  'LocationSearch'
+>;
 
-export function CurrentLocationHeaderButton() {
-  const theme = useTheme();
+export function BackButton() {
   const navigation = useNavigation<Navigation>();
-  const dispatch = useAppDispatch();
+  const theme = useTheme();
 
   const onPress = () => {
-    dispatch(fetchWeatherForCurrentLocation());
     navigation.goBack();
   };
 
   return (
     <Pressable onPress={onPress} style={styles.button}>
-      <Text style={[styles.text, {color: theme.colors.mutedText}]}>Current location</Text>
+      <ArrowLeft color={theme.colors.text} size={24} />
     </Pressable>
   );
 }
@@ -31,8 +31,5 @@ const styles = StyleSheet.create({
   button: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-  },
-  text: {
-    fontSize: 14
-  },
+  }
 });

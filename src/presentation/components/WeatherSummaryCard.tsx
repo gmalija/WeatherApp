@@ -2,15 +2,15 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import type { WeatherForecast } from '../../domain/entities/WeatherForecast';
-import { getThemeForProvider } from '../theme';
 import { getWeatherIcon, getWeatherDescription } from '../utils/weatherIcons';
+import { useTheme } from '../theme/useTheme.tsx';
 
 interface Props {
   forecast: WeatherForecast;
 }
 
 export function WeatherSummaryCard({ forecast }: Props) {
-  const theme = getThemeForProvider(forecast.providerId);
+  const theme = useTheme();
   const { location, current, providerId } = forecast;
   const weatherIcon = getWeatherIcon(current.weatherCode, providerId);
   const weatherDescription = getWeatherDescription(current.weatherCode, providerId);
@@ -18,7 +18,7 @@ export function WeatherSummaryCard({ forecast }: Props) {
   return (
     <View style={[styles.card, { backgroundColor: theme.colors.cardBackground }]}>
       <Text style={[styles.location, { color: theme.colors.text }]}>{location.name}</Text>
-      <Text style={[styles.provider, { color: theme.colors.mutedText }]}>{theme.label}</Text>
+      <Text style={[styles.provider, { color: theme.colors.accent }]}>Powered by {theme.provider.label}</Text>
 
       <View style={styles.currentRow}>
         <View style={styles.temperatureContainer}>

@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  FlatList,
+  TouchableOpacity,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -8,10 +18,13 @@ import { fetchWeatherByLocation } from '../../state/weatherSlice';
 import type { RootStackParamList } from '../../../navigation/types';
 import type { Location } from '../../../domain/entities/Location';
 import { weatherDependencies } from '../../../application/weatherDependencies';
+import { useTheme } from '../../theme/useTheme.tsx';
+import { MapPin } from 'lucide-react-native';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'>;
 
 export function LocationSearchScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<Navigation>();
   const dispatch = useAppDispatch();
 
@@ -19,6 +32,7 @@ export function LocationSearchScreen() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Location[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runSearch = async (query: string, { navigateOnSingle }: { navigateOnSingle: boolean }) => {
     const trimmed = query.trim();
@@ -66,57 +80,76 @@ export function LocationSearchScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={styles.label}>Search location</Text>
+        <Text style={[styles.label, { color: theme.colors.mutedText }]}>
+          Search location
+        </Text>
         <TextInput
           value={value}
-          onChangeText={(text) => {
+          onChangeText={text => {
             setValue(text);
             if (error) {
               setError(null);
             }
-            if (!text.trim()) {
+
+            const trimmed = text.trim();
+
+            // Clear results and cancel any pending search if input is empty or too short
+            if (!trimmed || trimmed.length < 3) {
               setResults([]);
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+                searchTimeoutRef.current = null;
+              }
               return;
             }
-            // Trigger a search-as-you-type experience so users see suggestions
-            // like "Cartagena de Indias" when typing "Car".
-            runSearch(text, { navigateOnSingle: false });
+
+            if (searchTimeoutRef.current) {
+              clearTimeout(searchTimeoutRef.current);
+            }
+
+            // Small debounce so we don't hit the API on every keystroke
+            searchTimeoutRef.current = setTimeout(() => {
+              runSearch(text, { navigateOnSingle: false });
+            }, 400);
           }}
-          placeholder='Madrid, España'
-          keyboardType='default'
-          autoCapitalize='none'
+          placeholder={'Madrid, España'}
+          placeholderTextColor={theme.colors.mutedText}
+          keyboardType={'default'}
+          autoCapitalize={'none'}
           autoCorrect={false}
-          style={styles.input}
+          style={[styles.input, {borderColor: theme.colors.border, color: theme.colors.text, backgroundColor: theme.colors.headerBackground}]}
           onSubmitEditing={onSubmit}
-          returnKeyType='search'
+          returnKeyType={'search'}
         />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Pressable onPress={onSubmit} style={styles.button}>
-          <Text style={styles.buttonText}>{isSearching ? 'Searching...' : 'Search'}</Text>
+        {error ? <Text style={[styles.error, {color: theme.colors.error}]}>{error}</Text> : null}
+        <Pressable onPress={onSubmit} style={[styles.button, { backgroundColor: theme.colors.primary }]}>
+          <Text style={[styles.buttonText, { color: theme.colors.text }]}>
+            {isSearching ? 'Searching...' : 'Search'}
+          </Text>
         </Pressable>
 
         {results.length > 0 && (
           <View style={styles.resultsContainer}>
-            <Text style={styles.resultsTitle}>Select a location</Text>
+            <Text style={[styles.resultsTitle, {color: theme.colors.text}]}>Select a location</Text>
             <FlatList
               data={results}
-              keyExtractor={(item) => `${item.latitude},${item.longitude}`}
+              keyExtractor={item => `${item.latitude},${item.longitude}`}
               renderItem={({ item }) => (
-                <Pressable
+                <TouchableOpacity
                   style={styles.resultItem}
                   onPress={() => onSelectLocation(item)}
                 >
-                  <Text style={styles.resultName}>{item.name}</Text>
-                  <Text style={styles.resultCoords}>
-                    {item.latitude.toFixed(2)}, {item.longitude.toFixed(2)}
-                  </Text>
-                </Pressable>
+                  <MapPin />
+                  <Text style={[styles.resultName, {color: theme.colors.mutedText}]}>{item.name}</Text>
+                </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View style={styles.resultSeparator} />}
+              ItemSeparatorComponent={() => (
+                <View style={styles.resultSeparator} />
+              )}
             />
           </View>
         )}
@@ -140,27 +173,21 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#4b5563',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 16,
-    color: '#e5e7eb',
-    backgroundColor: '#020617',
+    fontSize: 16
   },
   error: {
     marginTop: 8,
-    color: '#f97373',
     fontSize: 13,
   },
   button: {
     marginTop: 16,
     borderRadius: 8,
-    backgroundColor: '#2563eb',
     paddingVertical: 12,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#f9fafb',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -169,19 +196,18 @@ const styles = StyleSheet.create({
   },
   resultsTitle: {
     fontSize: 14,
-    marginBottom: 8,
-    color: '#e5e7eb',
+    marginBottom: 8
   },
   resultItem: {
-    paddingVertical: 8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 8
   },
   resultName: {
+    flex: 1,
     fontSize: 14,
-    color: '#e5e7eb',
-  },
-  resultCoords: {
-    fontSize: 12,
-    color: '#9ca3af',
   },
   resultSeparator: {
     height: StyleSheet.hairlineWidth,
