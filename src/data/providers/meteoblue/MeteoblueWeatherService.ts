@@ -7,14 +7,15 @@ import { mapMeteoblueToWeatherForecast, MeteoblueResponse } from '../../mappers/
 
 export class MeteoblueWeatherService implements WeatherProviderService {
   readonly id: WeatherProviderId = WeatherProviderIds.METEOBLUE;
-
   private readonly httpClient: HttpClient;
-
   private readonly apiKey: string;
-
   private readonly baseUrl: string;
 
-  constructor(httpClient: HttpClient, apiKey: string, baseUrl = 'https://my.meteoblue.com/packages/basic-1h_basic-day') {
+  constructor(
+    httpClient: HttpClient,
+    apiKey: string,
+    baseUrl = 'https://my.meteoblue.com/packages/basic-1h_basic-day'
+  ) {
     this.httpClient = httpClient;
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
@@ -27,7 +28,10 @@ export class MeteoblueWeatherService implements WeatherProviderService {
       apikey: this.apiKey,
     };
 
-    const response = await this.httpClient.get<MeteoblueResponse>(this.baseUrl, { query });
+    const response = await this.httpClient.get<MeteoblueResponse>(
+      this.baseUrl,
+      { query },
+    );
 
     return mapMeteoblueToWeatherForecast(response, location, this.id);
   }

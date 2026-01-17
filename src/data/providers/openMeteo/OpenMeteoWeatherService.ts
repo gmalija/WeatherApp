@@ -7,12 +7,13 @@ import { mapOpenMeteoToWeatherForecast, OpenMeteoResponse } from '../../mappers/
 
 export class OpenMeteoWeatherService implements WeatherProviderService {
   readonly id: WeatherProviderId = WeatherProviderIds.OPEN_METEO;
-
   private readonly httpClient: HttpClient;
-
   private readonly baseUrl: string;
 
-  constructor(httpClient: HttpClient, baseUrl = 'https://api.open-meteo.com/v1/forecast') {
+  constructor(
+    httpClient: HttpClient,
+    baseUrl = 'https://api.open-meteo.com/v1/forecast'
+  ) {
     this.httpClient = httpClient;
     this.baseUrl = baseUrl;
   }
@@ -21,12 +22,16 @@ export class OpenMeteoWeatherService implements WeatherProviderService {
     const query = {
       latitude: location.latitude,
       longitude: location.longitude,
-      daily: 'weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,rain_sum,precipitation_sum',
+      daily:
+        'weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,rain_sum,precipitation_sum',
       current: 'temperature_2m,wind_speed_10m,precipitation,rain,weather_code',
       timezone: 'auto',
     };
 
-    const response = await this.httpClient.get<OpenMeteoResponse>(this.baseUrl, { query });
+    const response = await this.httpClient.get<OpenMeteoResponse>(
+      this.baseUrl,
+      { query },
+    );
 
     return mapOpenMeteoToWeatherForecast(response, location, this.id);
   }

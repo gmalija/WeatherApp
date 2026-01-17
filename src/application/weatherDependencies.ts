@@ -3,9 +3,9 @@ import { OpenMeteoWeatherService } from '../data/providers/openMeteo/OpenMeteoWe
 import { MeteoblueWeatherService } from '../data/providers/meteoblue/MeteoblueWeatherService';
 import { WeatherRepositoryImpl } from '../data/repositories/WeatherRepositoryImpl';
 import { GeolocationLocationProvider } from '../data/location/GeolocationLocationProvider';
-import { OpenMeteoGeocodingService } from '../data/geocoding/OpenMeteoGeocodingService';
 import { GetWeatherByLocationUseCase } from '../domain/useCases/GetWeatherByLocationUseCase';
 import { GetWeatherForCurrentLocationUseCase } from '../domain/useCases/GetWeatherForCurrentLocationUseCase';
+import { GeocodingService } from '../data/geocoding/GeocodingService.tsx';
 
 const httpClient = new FetchHttpClient();
 
@@ -16,8 +16,8 @@ const meteoblueService = new MeteoblueWeatherService(httpClient, meteoblueApiKey
 
 const weatherRepository = new WeatherRepositoryImpl([openMeteoService, meteoblueService]);
 
-const geocodingService = new OpenMeteoGeocodingService(httpClient);
-const locationProvider = new GeolocationLocationProvider();
+const geocodingService = new GeocodingService(httpClient);
+const locationProvider = new GeolocationLocationProvider(geocodingService);
 
 const getWeatherByLocationUseCase = new GetWeatherByLocationUseCase(weatherRepository);
 const getWeatherForCurrentLocationUseCase = new GetWeatherForCurrentLocationUseCase(
