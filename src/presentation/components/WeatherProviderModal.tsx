@@ -13,7 +13,7 @@ import {
   WeatherProviderId,
   WeatherProviderIds,
 } from '../../domain/valueObjects/WeatherProviderId';
-import { getThemeForProvider } from '../theme';
+import { getGeneralColors, getThemeForProvider } from '../theme';
 
 const providers = [
   { id: WeatherProviderIds.OPEN_METEO, label: 'Open-Meteo' },
@@ -32,9 +32,7 @@ export function WeatherProviderModal({
   onSelectProvider,
 }: Props) {
   const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  const backgroundColor = isDarkMode ? '#020617' : '#ffffff';
-  const textColor = isDarkMode ? '#f9fafb' : '#111827';
+  const colors = getGeneralColors(colorScheme === 'dark');
 
   return (
     <Modal
@@ -44,8 +42,8 @@ export function WeatherProviderModal({
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <View style={[styles.menu, { backgroundColor }]}>
-          <Text style={[styles.title, { color: textColor }]}>
+        <View style={[styles.menu, { backgroundColor: colors.background }]}>
+          <Text style={[styles.title, { color: colors.text }]}>
             Select Weather Service
           </Text>
 
