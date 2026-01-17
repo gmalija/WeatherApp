@@ -4,7 +4,17 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import type { Location } from '../../domain/entities/Location';
 import type { LocationProvider } from '../../domain/location/LocationProvider';
 
+export interface ReverseGeocoder {
+  reverseGeocode(latitude: number, longitude: number): Promise<string>;
+}
+
 export class GeolocationLocationProvider implements LocationProvider {
+  private readonly reverseGeocoder?: ReverseGeocoder;
+
+  constructor(reverseGeocoder?: ReverseGeocoder) {
+    this.reverseGeocoder = reverseGeocoder;
+  }
+
   async getCurrentLocation(): Promise<Location> {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
@@ -24,13 +34,24 @@ export class GeolocationLocationProvider implements LocationProvider {
 
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
+
+          let name = 'Current location';
+          if (this.reverseGeocoder) {
+            try {
+              name = await this.reverseGeocoder.reverseGeocode(latitude, longitude);
+              console.log('Reverse Geocode', name);
+
+            } catch {
+              // Keep default name if reverse geocoding fails
+            }
+          }
 
           resolve({
             latitude,
             longitude,
-            name: 'Current location',
+            name,
           });
         },
         (error) => {

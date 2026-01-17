@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 
 import type { WeatherForecast } from '../../domain/entities/WeatherForecast';
 import { getThemeForProvider } from '../theme';
+import { getWeatherIcon, getWeatherDescription } from '../utils/weatherIcons';
 
 interface Props {
   forecast: WeatherForecast;
@@ -10,7 +11,10 @@ interface Props {
 
 export function WeatherSummaryCard({ forecast }: Props) {
   const theme = getThemeForProvider(forecast.providerId);
-  const { location, current } = forecast;
+  const { location, current, providerId } = forecast;
+
+  const weatherIcon = getWeatherIcon(current.weatherCode, providerId);
+  const weatherDescription = getWeatherDescription(current.weatherCode, providerId);
 
   return (
     <View style={[styles.card, { backgroundColor: theme.colors.cardBackground }]}>
@@ -18,11 +22,14 @@ export function WeatherSummaryCard({ forecast }: Props) {
       <Text style={[styles.provider, { color: theme.colors.mutedText }]}>{theme.label}</Text>
 
       <View style={styles.currentRow}>
-        <Text style={[styles.temperature, { color: theme.colors.accent }]}>{Math.round(current.temperature)}°</Text>
+        <View style={styles.temperatureContainer}>
+          <Text style={[styles.temperature, { color: theme.colors.accent }]}>{Math.round(current.temperature)}°</Text>
+          <Text style={styles.weatherIcon}>{weatherIcon}</Text>
+        </View>
         <View style={styles.currentDetails}>
+          <Text style={[styles.weatherDescription, { color: theme.colors.text }]}>{weatherDescription}</Text>
           <Text style={[styles.detailText, { color: theme.colors.text }]}>Wind: {Math.round(current.windSpeed)} km/h</Text>
           <Text style={[styles.detailText, { color: theme.colors.text }]}>Precipitation: {current.precipitation.toFixed(1)} mm</Text>
-          <Text style={[styles.detailText, { color: theme.colors.text }]}>Code: {current.weatherCode}</Text>
         </View>
       </View>
     </View>
@@ -48,13 +55,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
+  temperatureContainer: {
+    alignItems: 'center',
+    marginRight: 16,
+  },
   temperature: {
     fontSize: 48,
     fontWeight: '700',
-    marginRight: 16,
+  },
+  weatherIcon: {
+    fontSize: 32,
+    marginTop: 4,
   },
   currentDetails: {
     flex: 1,
+  },
+  weatherDescription: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   detailText: {
     fontSize: 14,
