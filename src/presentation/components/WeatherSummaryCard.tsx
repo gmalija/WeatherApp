@@ -12,7 +12,6 @@ interface Props {
 export function WeatherSummaryCard({ forecast }: Props) {
   const theme = getThemeForProvider(forecast.providerId);
   const { location, current, providerId } = forecast;
-
   const weatherIcon = getWeatherIcon(current.weatherCode, providerId);
   const weatherDescription = getWeatherDescription(current.weatherCode, providerId);
 

@@ -78,18 +78,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   icon: {
-    width: 28,
     fontSize: 16,
-    textAlign: 'center',
-    marginLeft: 6
+    textAlign: 'center'
   },
   temp: {
-    width: 80,
     fontSize: 14,
     textAlign: 'right',
   },
   detail: {
-    width: 80,
     fontSize: 12,
     textAlign: 'right',
   },
