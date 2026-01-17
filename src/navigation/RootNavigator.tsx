@@ -1,34 +1,31 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useColorScheme } from 'react-native';
-
 import { HomeScreen } from '../presentation/screens/HomeScreen/HomeScreen';
 import { LocationSearchScreen } from '../presentation/screens/LocationSearchScreen/LocationSearchScreen';
 import { FakeSearchInput } from '../presentation/components/FakeSearchInput';
 import { CurrentLocationHeaderButton } from '../presentation/components/CurrentLocationHeaderButton';
 import { RootStackParamList } from './types';
 import { SettingsMenu } from '../presentation/components/SettingsMenu.tsx';
-import { getGeneralColors } from '../presentation/theme';
 import { BackButton } from '../presentation/components/BackButton.tsx';
+import { useTheme } from '../presentation/theme/useTheme.tsx';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const colorScheme = useColorScheme();
-  const colors = getGeneralColors(colorScheme === 'dark');
+  const theme = useTheme();
 
   return (
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.headerBackground,
+          backgroundColor: theme.colors.headerBackground,
         },
-        headerTintColor: colors.headerText,
+        headerTintColor: theme.colors.headerText,
         headerTitleStyle: {
-          color: colors.headerText,
+          color: theme.colors.headerText,
         },
         contentStyle: {
-          backgroundColor: colors.headerBackground,
+          backgroundColor: theme.colors.headerBackground,
         },
       }}
     >

@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 
 import type { DailyWeather } from '../../domain/entities/WeatherForecast';
 import type { WeatherProviderId } from '../../domain/valueObjects/WeatherProviderId';
-import { getThemeForProvider } from '../theme';
 import { getWeatherIcon } from '../utils/weatherIcons';
+import { useTheme } from '../theme/useTheme.tsx';
 
 interface Props {
   providerId: WeatherProviderId;
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function DailyForecastList({ providerId, days }: Props) {
-  const theme = getThemeForProvider(providerId);
+  const theme = useTheme();
 
   return (
     <View style={styles.container}>

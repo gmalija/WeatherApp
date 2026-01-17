@@ -6,10 +6,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppDispatch } from '../state/hooks';
 import { fetchWeatherForCurrentLocation } from '../state/weatherSlice';
 import type { RootStackParamList } from '../../navigation/types';
+import { useTheme } from '../theme/useTheme.tsx';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'>;
 
 export function CurrentLocationHeaderButton() {
+  const theme = useTheme();
   const navigation = useNavigation<Navigation>();
   const dispatch = useAppDispatch();
 
@@ -20,7 +22,7 @@ export function CurrentLocationHeaderButton() {
 
   return (
     <Pressable onPress={onPress} style={styles.button}>
-      <Text style={styles.text}>Current location</Text>
+      <Text style={[styles.text, {color: theme.colors.mutedText}]}>Current location</Text>
     </Pressable>
   );
 }
@@ -31,7 +33,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   text: {
-    fontSize: 14,
-    color: '#2563eb',
+    fontSize: 14
   },
 });

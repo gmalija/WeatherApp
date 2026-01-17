@@ -7,17 +7,17 @@ import {
   StyleSheet,
   FlatList,
 } from 'react-native';
-import { useColorScheme } from 'react-native';
 
 import {
   WeatherProviderId,
   WeatherProviderIds,
 } from '../../domain/valueObjects/WeatherProviderId';
-import { getGeneralColors, getThemeForProvider } from '../theme';
+import { useTheme } from '../theme/useTheme';
+import { getTheme } from '../theme';
 
 const providers = [
   { id: WeatherProviderIds.OPEN_METEO, label: 'Open-Meteo' },
-  { id: WeatherProviderIds.METEOBLUE, label: 'MeteoBlue' },
+  { id: WeatherProviderIds.METEOBLUE, label: 'Meteoblue' },
 ];
 
 type Props = {
@@ -31,8 +31,7 @@ export function WeatherProviderModal({
   onClose,
   onSelectProvider,
 }: Props) {
-  const colorScheme = useColorScheme();
-  const colors = getGeneralColors(colorScheme === 'dark');
+  const theme = useTheme();
 
   return (
     <Modal
@@ -42,8 +41,13 @@ export function WeatherProviderModal({
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <View style={[styles.menu, { backgroundColor: colors.background }]}>
-          <Text style={[styles.title, { color: colors.text }]}>
+        <View
+          style={[
+            styles.menu,
+            { backgroundColor: theme.colors.modalBackground },
+          ]}
+        >
+          <Text style={[styles.title, { color: theme.colors.text }]}>
             Select Weather Service
           </Text>
 
@@ -51,17 +55,26 @@ export function WeatherProviderModal({
             data={providers}
             keyExtractor={item => item.id}
             renderItem={({ item }) => {
-              const theme = getThemeForProvider(item.id);
+
+              const providerTheme = getTheme({
+                providerId: item.id,
+                scheme: theme.scheme,
+              });
 
               return (
                 <Pressable
                   onPress={() => onSelectProvider(item.id)}
                   style={[
                     styles.menuItem,
-                    { backgroundColor: theme.colors.accent },
+                    { backgroundColor: providerTheme.colors.primary },
                   ]}
                 >
-                  <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                  <Text
+                    style={[
+                      styles.menuText,
+                      { color: providerTheme.provider.colors.text },
+                    ]}
+                  >
                     {item.label}
                   </Text>
                 </Pressable>

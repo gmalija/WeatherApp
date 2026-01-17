@@ -5,8 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft } from 'lucide-react-native';
 
 import type { RootStackParamList } from '../../navigation/types';
-import { getGeneralColors } from '../theme';
-import { useColorScheme } from 'react-native';
+import { useTheme } from '../theme/useTheme.tsx';
 
 type Navigation = NativeStackNavigationProp<
   RootStackParamList,
@@ -15,8 +14,7 @@ type Navigation = NativeStackNavigationProp<
 
 export function BackButton() {
   const navigation = useNavigation<Navigation>();
-  const colorScheme = useColorScheme();
-  const colors = getGeneralColors(colorScheme === 'dark');
+  const theme = useTheme();
 
   const onPress = () => {
     navigation.goBack();
@@ -24,7 +22,7 @@ export function BackButton() {
 
   return (
     <Pressable onPress={onPress} style={styles.button}>
-      <ArrowLeft color={colors.text} size={24} />
+      <ArrowLeft color={theme.colors.text} size={24} />
     </Pressable>
   );
 }

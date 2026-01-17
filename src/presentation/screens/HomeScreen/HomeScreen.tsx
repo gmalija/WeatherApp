@@ -16,12 +16,10 @@ import {
 } from '../../state/weatherSlice';
 import { WeatherSummaryCard } from '../../components/WeatherSummaryCard';
 import { DailyForecastList } from '../../components/DailyForecastList';
-import { getGeneralColors, getThemeForProvider } from '../../theme';
+import { useTheme } from '../../theme/useTheme.tsx';
 
 export function HomeScreen() {
-  const colorScheme = useColorScheme();
-  const colors = getGeneralColors(colorScheme === 'dark');
-
+  const theme = useTheme();
   const dispatch = useAppDispatch();
   const weather = useAppSelector((state) => state.weather);
 
@@ -30,8 +28,6 @@ export function HomeScreen() {
       dispatch(fetchWeatherForCurrentLocation());
     }
   }, [dispatch, weather.currentForecast, weather.status]);
-
-  const theme = getThemeForProvider(weather.selectedProviderId);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Reset refreshing state when loading completes
@@ -65,7 +61,7 @@ export function HomeScreen() {
         <Text
           style={[
             styles.errorText,
-            { color: colors.error },
+            { color: theme.colors.error },
           ]}
         >
           {weather.error ?? 'Failed to load weather'}

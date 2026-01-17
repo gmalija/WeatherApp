@@ -1,15 +1,19 @@
 import type { WeatherProviderId } from '../../domain/valueObjects/WeatherProviderId';
 import { WeatherProviderIds } from '../../domain/valueObjects/WeatherProviderId';
 
+/* -------------------------------------------------------------------------- */
+/* General (Light / Dark)                                                     */
+/* -------------------------------------------------------------------------- */
+
 export interface GeneralColors {
   background: string;
-  surface: string; // For cards, modals, etc.
+  surface: string;
   text: string;
   mutedText: string;
   border: string;
   separator: string;
-  primary: string; // Blue for buttons
-  error: string; // Red for errors
+  primary: string;
+  error: string;
   inputBackground: string;
   modalBackground: string;
   headerBackground: string;
@@ -33,18 +37,22 @@ export const lightColors: GeneralColors = {
 
 export const darkColors: GeneralColors = {
   background: '#020617',
-  surface: '#020617', // Or a slightly different shade if needed
+  surface: '#020617',
   text: '#f9fafb',
   mutedText: '#9ca3af',
   border: '#374151',
   separator: '#4b5563',
-  primary: '#2563eb', // Same or adjust
+  primary: '#2563eb',
   error: '#f97373',
   inputBackground: 'transparent',
   modalBackground: '#020617',
   headerBackground: '#020617',
   headerText: '#f9fafb',
 };
+
+/* -------------------------------------------------------------------------- */
+/* Provider Themes                                                            */
+/* -------------------------------------------------------------------------- */
 
 export interface ProviderThemeColors {
   background: string;
@@ -90,11 +98,46 @@ const meteoblueTheme: ProviderTheme = {
   },
 };
 
-export function getGeneralColors(isDarkMode: boolean): GeneralColors {
-  return isDarkMode ? darkColors : lightColors;
+/* -------------------------------------------------------------------------- */
+/* Unified Theme                                                              */
+/* -------------------------------------------------------------------------- */
+
+export type ColorScheme = 'light' | 'dark';
+
+export interface AppTheme {
+  scheme: ColorScheme;
+  providerId: WeatherProviderId;
+
+  general: GeneralColors;
+  provider: ProviderTheme;
+
+  /**
+   * Tokens finales usados por UI (single source of truth).
+   * Aquí decides si manda general o provider.
+   */
+  colors: {
+    background: string;
+    surface: string;
+    text: string;
+    mutedText: string;
+    border: string;
+    separator: string;
+
+    primary: string;
+    accent: string;
+    cardBackground: string;
+
+    inputBackground: string;
+    modalBackground: string;
+
+    headerBackground: string;
+    headerText: string;
+
+    error: string;
+  };
 }
 
-export function getThemeForProvider(providerId: WeatherProviderId): ProviderTheme {
+function getProviderTheme(providerId: WeatherProviderId): ProviderTheme {
   switch (providerId) {
     case WeatherProviderIds.OPEN_METEO:
       return openMeteoTheme;
@@ -103,4 +146,48 @@ export function getThemeForProvider(providerId: WeatherProviderId): ProviderThem
     default:
       return openMeteoTheme;
   }
+}
+
+function getGeneralColors(scheme: ColorScheme): GeneralColors {
+  return scheme === 'dark' ? darkColors : lightColors;
+}
+
+export function getTheme(params: {
+  providerId: WeatherProviderId;
+  scheme: ColorScheme;
+}): AppTheme {
+  const { providerId, scheme } = params;
+
+  const general = getGeneralColors(scheme);
+  const provider = getProviderTheme(providerId);
+
+  return {
+    scheme,
+    providerId,
+    general,
+    provider,
+    colors: {
+      // general
+      background: general.background,
+      surface: general.surface,
+      text: general.text,
+      mutedText: general.mutedText,
+      border: general.border,
+      separator: general.separator,
+
+      // provider
+      primary: provider.colors.primary,
+      accent: provider.colors.accent,
+      cardBackground: provider.colors.cardBackground,
+
+      // general
+      inputBackground: general.inputBackground,
+      modalBackground: general.modalBackground,
+
+      headerBackground: general.headerBackground,
+      headerText: general.headerText,
+
+      error: general.error,
+    },
+  };
 }
