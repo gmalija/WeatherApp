@@ -1,4 +1,7 @@
-import { getWeatherIcon, getWeatherDescription } from '../../src/presentation/utils/weatherIcons';
+import {
+  getWeatherIcon,
+  getWeatherDescription,
+} from '../../src/presentation/utils/weatherIcons';
 import { WeatherProviderIds } from '../../src/domain/valueObjects/WeatherProviderId';
 
 describe('weatherIcons', () => {
@@ -46,6 +49,10 @@ describe('weatherIcons', () => {
         expect(getWeatherIcon(8, WeatherProviderIds.METEOBLUE)).toBe('⛈️');
       });
 
+      it('returns rain emoji for cloudy with rain (pictocode 21)', () => {
+        expect(getWeatherIcon(21, WeatherProviderIds.METEOBLUE)).toBe('🌧️');
+      });
+
       it('returns fallback emoji for unknown pictocode', () => {
         expect(getWeatherIcon(999, WeatherProviderIds.METEOBLUE)).toBe('🌡️');
       });
@@ -54,38 +61,60 @@ describe('weatherIcons', () => {
 
   describe('getWeatherDescription', () => {
     describe('Open-Meteo provider', () => {
-      it('returns "Clear" for code 0', () => {
-        expect(getWeatherDescription(0, WeatherProviderIds.OPEN_METEO)).toBe('Clear');
+      it('returns "Clear sky" for code 0', () => {
+        expect(getWeatherDescription(0, WeatherProviderIds.OPEN_METEO)).toBe(
+          'Clear sky',
+        );
       });
 
       it('returns "Overcast" for code 3', () => {
-        expect(getWeatherDescription(3, WeatherProviderIds.OPEN_METEO)).toBe('Overcast');
+        expect(getWeatherDescription(3, WeatherProviderIds.OPEN_METEO)).toBe(
+          'Overcast',
+        );
       });
 
-      it('returns "Rain" for code 63', () => {
-        expect(getWeatherDescription(63, WeatherProviderIds.OPEN_METEO)).toBe('Rain');
+      it('returns "Moderate rain" for code 63', () => {
+        expect(getWeatherDescription(63, WeatherProviderIds.OPEN_METEO)).toBe(
+          'Moderate rain',
+        );
       });
 
-      it('returns "Unknown" for unknown code', () => {
-        expect(getWeatherDescription(999, WeatherProviderIds.OPEN_METEO)).toBe('Unknown');
+      it('returns Unknown(code) for unknown code', () => {
+        expect(getWeatherDescription(999, WeatherProviderIds.OPEN_METEO)).toBe(
+          'Unknown (999)',
+        );
       });
     });
 
     describe('Meteoblue provider', () => {
-      it('returns "Clear" for pictocode 1', () => {
-        expect(getWeatherDescription(1, WeatherProviderIds.METEOBLUE)).toBe('Clear');
+      it('returns "Sunny, cloudless sky" for pictocode 1', () => {
+        expect(getWeatherDescription(1, WeatherProviderIds.METEOBLUE)).toBe(
+          'Sunny, cloudless sky',
+        );
       });
 
       it('returns "Overcast" for pictocode 4', () => {
-        expect(getWeatherDescription(4, WeatherProviderIds.METEOBLUE)).toBe('Overcast');
+        expect(getWeatherDescription(4, WeatherProviderIds.METEOBLUE)).toBe(
+          'Overcast',
+        );
       });
 
-      it('returns "Rain" for pictocode 6', () => {
-        expect(getWeatherDescription(6, WeatherProviderIds.METEOBLUE)).toBe('Rain');
+      it('returns "Overcast with rain" for pictocode 6', () => {
+        expect(getWeatherDescription(6, WeatherProviderIds.METEOBLUE)).toBe(
+          'Overcast with rain',
+        );
       });
 
-      it('returns "Unknown" for unknown pictocode', () => {
-        expect(getWeatherDescription(999, WeatherProviderIds.METEOBLUE)).toBe('Unknown');
+      it('returns "Cloudy with rain" for pictocode 21', () => {
+        expect(getWeatherDescription(21, WeatherProviderIds.METEOBLUE)).toBe(
+          'Cloudy with rain',
+        );
+      });
+
+      it('returns Unknown(code) for unknown pictocode', () => {
+        expect(getWeatherDescription(999, WeatherProviderIds.METEOBLUE)).toBe(
+          'Unknown (999)',
+        );
       });
     });
   });

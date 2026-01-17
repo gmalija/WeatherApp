@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, useColorScheme } from 'react-native';
 
 import { useAppDispatch, useAppSelector } from '../state/hooks';
 import {
@@ -7,10 +7,14 @@ import {
   fetchWeatherByLocation,
 } from '../state/weatherSlice';
 import { WeatherProviderId } from '../../domain/valueObjects/WeatherProviderId';
-
 import { WeatherProviderModal } from './WeatherProviderModal';
+import { Settings } from 'lucide-react-native';
+import { getGeneralColors } from '../theme';
 
 export function SettingsMenu() {
+  const colorScheme = useColorScheme();
+  const colors = getGeneralColors(colorScheme === 'dark');
+
   const [modalVisible, setModalVisible] = useState(false);
   const dispatch = useAppDispatch();
   const { currentLocation } = useAppSelector(state => state.weather);
@@ -31,7 +35,7 @@ export function SettingsMenu() {
         onPress={() => setModalVisible(true)}
         style={styles.iconButton}
       >
-        <Text style={styles.icon}>⚙️</Text>
+        <Settings color={colors.text} size={24} />
       </Pressable>
 
       <WeatherProviderModal
@@ -46,8 +50,5 @@ export function SettingsMenu() {
 const styles = StyleSheet.create({
   iconButton: {
     padding: 8,
-  },
-  icon: {
-    fontSize: 20,
-  },
+  }
 });

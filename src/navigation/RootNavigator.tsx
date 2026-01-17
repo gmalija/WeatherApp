@@ -8,28 +8,27 @@ import { FakeSearchInput } from '../presentation/components/FakeSearchInput';
 import { CurrentLocationHeaderButton } from '../presentation/components/CurrentLocationHeaderButton';
 import { RootStackParamList } from './types';
 import { SettingsMenu } from '../presentation/components/SettingsMenu.tsx';
+import { getGeneralColors } from '../presentation/theme';
+import { BackButton } from '../presentation/components/BackButton.tsx';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-
-  const headerBackground = isDarkMode ? '#020617' : '#ffffff';
-  const headerTextColor = isDarkMode ? '#f9fafb' : '#111827';
+  const colors = getGeneralColors(colorScheme === 'dark');
 
   return (
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: headerBackground,
+          backgroundColor: colors.headerBackground,
         },
-        headerTintColor: headerTextColor,
+        headerTintColor: colors.headerText,
         headerTitleStyle: {
-          color: headerTextColor,
+          color: colors.headerText,
         },
         contentStyle: {
-          backgroundColor: headerBackground,
+          backgroundColor: colors.headerBackground,
         },
       }}
     >
@@ -39,7 +38,7 @@ export function RootNavigator() {
         options={{
           headerTitle: '',
           headerLeft: () => <FakeSearchInput />,
-          headerRight: () => <SettingsMenu />
+          headerRight: () => <SettingsMenu />,
         }}
       />
       <Stack.Screen
@@ -47,7 +46,8 @@ export function RootNavigator() {
         component={LocationSearchScreen}
         options={{
           headerTitle: '',
-          headerLeft: () => <CurrentLocationHeaderButton />,
+          headerLeft: () => <BackButton />,
+          headerRight: () => <CurrentLocationHeaderButton />,
         }}
       />
     </Stack.Navigator>
