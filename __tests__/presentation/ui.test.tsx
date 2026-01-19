@@ -101,20 +101,20 @@ describe('FakeSearchInput', () => {
 
 describe('SettingsMenu', () => {
   it('opens modal when settings icon is pressed', () => {
-    const { getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
+    const { getByTestId, getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
 
     expect(queryByText('Select Weather Service')).toBeNull();
 
-    const settingsIcon = getByText('⚙️');
+    const settingsIcon = getByTestId('settings-icon');
     fireEvent.press(settingsIcon);
 
     expect(getByText('Select Weather Service')).toBeTruthy();
   });
 
   it('closes modal when overlay is pressed', () => {
-    const { getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
+    const { getByTestId, getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
 
-    const settingsIcon = getByText('⚙️');
+    const settingsIcon = getByTestId('settings-icon');
     fireEvent.press(settingsIcon);
 
     expect(getByText('Select Weather Service')).toBeTruthy();
@@ -127,17 +127,17 @@ describe('SettingsMenu', () => {
   });
 
   it('selects a provider and closes modal', () => {
-    const { getByText, queryByText, store } = wrapWithStoreAndNav(
+    const { getByTestId, getByText, queryByText, store } = wrapWithStoreAndNav(
       <SettingsMenu />,
       {
         selectedProviderId: WeatherProviderIds.OPEN_METEO,
       },
     );
 
-    const settingsIcon = getByText('⚙️');
+    const settingsIcon = getByTestId('settings-icon');
     fireEvent.press(settingsIcon);
 
-    const meteoblueOption = getByText('MeteoBlue');
+    const meteoblueOption = getByText('Meteoblue');
     fireEvent.press(meteoblueOption);
 
     expect(store.getState().weather.selectedProviderId).toBe(
@@ -152,21 +152,20 @@ describe('SettingsMenu', () => {
       longitude: -74.006,
       name: 'New York',
     };
-    const { getByText, store } = wrapWithStoreAndNav(<SettingsMenu />, {
+    const { getByTestId, getByText, store } = wrapWithStoreAndNav(<SettingsMenu />, {
       selectedProviderId: WeatherProviderIds.OPEN_METEO,
       currentLocation: mockLocation,
     });
 
-    const settingsIcon = getByText('⚙️');
+    const settingsIcon = getByTestId('settings-icon');
     fireEvent.press(settingsIcon);
 
-    const meteoblueOption = getByText('MeteoBlue');
+    const meteoblueOption = getByText('Meteoblue');
     fireEvent.press(meteoblueOption);
 
     expect(store.getState().weather.selectedProviderId).toBe(
       WeatherProviderIds.METEOBLUE,
     );
-    // Optionally, check if fetchWeatherByLocation action was dispatched (requires mocking or spying on dispatch)
   });
 });
 

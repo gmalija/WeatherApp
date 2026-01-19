@@ -32,6 +32,7 @@ export function SettingsMenu() {
       <Pressable
         onPress={() => setModalVisible(true)}
         style={styles.iconButton}
+        testID="settings-icon"
       >
         <Settings color={theme.colors.text} size={24} />
       </Pressable>
