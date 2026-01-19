@@ -46,17 +46,21 @@ export class GeocodingService {
             lon: longitude.toString(),
             zoom: '10', // City-level detail
           },
+          headers: {
+            'User-Agent': 'WeatherApp/1.0',
+          },
         },
       );
 
-      console.log(response);
+      console.log('Reverse geocode response:', response);
 
       if (response && response.display_name) {
         return response.display_name;
       }
 
       return 'Current location';
-    } catch {
+    } catch (error) {
+      console.error('Reverse geocode failed:', error);
       return 'Current location';
     }
   }
@@ -70,6 +74,9 @@ export class GeocodingService {
           q: query,
           limit: '5',
           addressdetails: '1',
+        },
+        headers: {
+          'User-Agent': 'WeatherApp/1.0',
         },
       },
     );
