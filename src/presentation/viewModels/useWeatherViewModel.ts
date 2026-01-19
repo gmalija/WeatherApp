@@ -46,7 +46,7 @@ export function useWeatherViewModel(): WeatherViewModelState & WeatherViewModelA
       setState(prev => ({
         ...prev,
         status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? (error as Error).message : 'Unknown error',
       }));
     }
   }, [state.selectedProviderId]);
@@ -75,7 +75,7 @@ export function useWeatherViewModel(): WeatherViewModelState & WeatherViewModelA
       setState(prev => ({
         ...prev,
         status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? (error as Error).message : 'Unknown error',
       }));
     }
   }, [state.selectedProviderId]);
@@ -83,7 +83,7 @@ export function useWeatherViewModel(): WeatherViewModelState & WeatherViewModelA
   const fetchWeatherForCurrentLocation = useCallback(async () => {
     setState(prev => ({ ...prev, status: 'loading', error: null }));
     try {
-      const forecast = await weatherDependencies.getWeatherForCurrentLocationUseCase.execute();
+      const forecast = await weatherDependencies.getWeatherForCurrentLocationUseCase.execute(state.selectedProviderId);
       setState(prev => ({
         ...prev,
         currentLocation: forecast.location,
@@ -94,10 +94,10 @@ export function useWeatherViewModel(): WeatherViewModelState & WeatherViewModelA
       setState(prev => ({
         ...prev,
         status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? (error as Error).message : 'Unknown error',
       }));
     }
-  }, []);
+  }, [state.selectedProviderId]);
 
   // Auto-fetch on mount if no forecast
   useEffect(() => {
