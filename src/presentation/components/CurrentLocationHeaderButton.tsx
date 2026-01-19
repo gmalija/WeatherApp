@@ -3,8 +3,7 @@ import { Pressable, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { useAppDispatch } from '../state/hooks';
-import { fetchWeatherForCurrentLocation } from '../state/weatherSlice';
+import { useWeather } from '../viewModels/WeatherContext';
 import type { RootStackParamList } from '../../navigation/types';
 import { useTheme } from '../theme/useTheme.tsx';
 
@@ -13,10 +12,10 @@ type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'
 export function CurrentLocationHeaderButton() {
   const theme = useTheme();
   const navigation = useNavigation<Navigation>();
-  const dispatch = useAppDispatch();
+  const weather = useWeather();
 
-  const onPress = () => {
-    dispatch(fetchWeatherForCurrentLocation());
+  const onPress = async () => {
+    await weather.fetchWeatherForCurrentLocation();
     navigation.goBack();
   };
 

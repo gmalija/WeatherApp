@@ -8,25 +8,15 @@ import {
   RefreshControl,
 } from 'react-native';
 
-import { useAppDispatch, useAppSelector } from '../../state/hooks';
-import {
-  fetchWeatherByLocation,
-  fetchWeatherForCurrentLocation,
-} from '../../state/weatherSlice';
+import { useWeather } from '../../viewModels/WeatherContext';
 import { WeatherSummaryCard } from '../../components/WeatherSummaryCard';
 import { DailyForecastList } from '../../components/DailyForecastList';
 import { useTheme } from '../../theme/useTheme.tsx';
 
 export function HomeScreen() {
   const theme = useTheme();
-  const dispatch = useAppDispatch();
-  const weather = useAppSelector((state) => state.weather);
+  const weather = useWeather();
 
-  useEffect(() => {
-    if (!weather.currentForecast && weather.status === 'idle') {
-      dispatch(fetchWeatherForCurrentLocation());
-    }
-  }, [dispatch, weather.currentForecast, weather.status]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Reset refreshing state when loading completes
@@ -39,9 +29,9 @@ export function HomeScreen() {
   const onRefresh = () => {
     setIsRefreshing(true);
     if (weather.currentLocation) {
-      dispatch(fetchWeatherByLocation({ location: weather.currentLocation }));
+      weather.fetchWeatherByLocation(weather.currentLocation);
     } else {
-      dispatch(fetchWeatherForCurrentLocation());
+      weather.fetchWeatherForCurrentLocation();
     }
   };
 

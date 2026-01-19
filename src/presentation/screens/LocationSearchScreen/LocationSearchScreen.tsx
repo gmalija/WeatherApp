@@ -13,8 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { useAppDispatch } from '../../state/hooks';
-import { fetchWeatherByLocation } from '../../state/weatherSlice';
+import { useWeather } from '../../viewModels/WeatherContext';
 import type { RootStackParamList } from '../../../navigation/types';
 import type { Location } from '../../../domain/entities/Location';
 import { weatherDependencies } from '../../../application/weatherDependencies';
@@ -26,7 +25,7 @@ type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'
 export function LocationSearchScreen() {
   const theme = useTheme();
   const navigation = useNavigation<Navigation>();
-  const dispatch = useAppDispatch();
+  const weather = useWeather();
 
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +57,7 @@ export function LocationSearchScreen() {
       setResults(locations);
 
       if (navigateOnSingle && locations.length === 1) {
-        dispatch(fetchWeatherByLocation({ location: locations[0] }));
+        await weather.fetchWeatherByLocation(locations[0]);
         navigation.goBack();
       }
     } catch (err: any) {
@@ -73,8 +72,8 @@ export function LocationSearchScreen() {
     await runSearch(value, { navigateOnSingle: true });
   };
 
-  const onSelectLocation = (location: Location) => {
-    dispatch(fetchWeatherByLocation({ location }));
+  const onSelectLocation = async (location: Location) => {
+    await weather.fetchWeatherByLocation(location);
     navigation.goBack();
   };
 

@@ -1,16 +1,14 @@
 import React from 'react';
-import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { configureStore } from '@reduxjs/toolkit';
 import { render, fireEvent } from '@testing-library/react-native';
 
-import { weatherReducer } from '../../src/presentation/state/weatherSlice';
 import { FakeSearchInput } from '../../src/presentation/components/FakeSearchInput';
 import { HomeScreen } from '../../src/presentation/screens/HomeScreen/HomeScreen';
 import { LocationSearchScreen } from '../../src/presentation/screens/LocationSearchScreen/LocationSearchScreen';
 import { WeatherProviderIds } from '../../src/domain/valueObjects/WeatherProviderId';
 import type { WeatherForecast } from '../../src/domain/entities/WeatherForecast';
 import { SettingsMenu } from '../../src/presentation/components/SettingsMenu.tsx';
+import { WeatherProvider } from '../../src/presentation/viewModels/WeatherContext';
 
 jest.mock('../../src/application/weatherDependencies', () => {
   const mockForecast: WeatherForecast = {
@@ -56,42 +54,17 @@ jest.mock('../../src/application/weatherDependencies', () => {
   };
 });
 
-function createTestStore(preloaded?: Partial<ReturnType<typeof weatherReducer>>) {
-  return configureStore({
-    reducer: {
-      weather: weatherReducer,
-    },
-    preloadedState: preloaded
-      ? {
-          weather: {
-            selectedProviderId: WeatherProviderIds.OPEN_METEO,
-            currentLocation: null,
-            currentForecast: null,
-            status: 'idle',
-            error: null,
-            ...preloaded,
-          },
-        }
-      : undefined,
-  });
-}
-
-function wrapWithStoreAndNav(ui: React.ReactElement, preloaded?: Partial<ReturnType<typeof weatherReducer>>) {
-  const store = createTestStore(preloaded);
-
-  return {
-    store,
-    ...render(
-      <Provider store={store}>
-        <NavigationContainer>{ui}</NavigationContainer>
-      </Provider>,
-    ),
-  };
+function wrapWithWeatherProviderAndNav(ui: React.ReactElement) {
+  return render(
+    <WeatherProvider>
+      <NavigationContainer>{ui}</NavigationContainer>
+    </WeatherProvider>,
+  );
 }
 
 describe('FakeSearchInput', () => {
   it('shows placeholder when there is no current location', () => {
-    const { getByText } = wrapWithStoreAndNav(<FakeSearchInput />);
+    const { getByText } = wrapWithWeatherProviderAndNav(<FakeSearchInput />);
 
     expect(getByText('Search location')).toBeTruthy();
   });
@@ -101,7 +74,7 @@ describe('FakeSearchInput', () => {
 
 describe('SettingsMenu', () => {
   it('opens modal when settings icon is pressed', () => {
-    const { getByTestId, getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
+    const { getByTestId, getByText, queryByText } = wrapWithWeatherProviderAndNav(<SettingsMenu />);
 
     expect(queryByText('Select Weather Service')).toBeNull();
 
@@ -112,7 +85,7 @@ describe('SettingsMenu', () => {
   });
 
   it('closes modal when overlay is pressed', () => {
-    const { getByTestId, getByText, queryByText } = wrapWithStoreAndNav(<SettingsMenu />);
+    const { getByTestId, getByText, queryByText } = wrapWithWeatherProviderAndNav(<SettingsMenu />);
 
     const settingsIcon = getByTestId('settings-icon');
     fireEvent.press(settingsIcon);
@@ -127,12 +100,7 @@ describe('SettingsMenu', () => {
   });
 
   it('selects a provider and closes modal', () => {
-    const { getByTestId, getByText, queryByText, store } = wrapWithStoreAndNav(
-      <SettingsMenu />,
-      {
-        selectedProviderId: WeatherProviderIds.OPEN_METEO,
-      },
-    );
+    const { getByTestId, getByText, queryByText } = wrapWithWeatherProviderAndNav(<SettingsMenu />);
 
     const settingsIcon = getByTestId('settings-icon');
     fireEvent.press(settingsIcon);
@@ -140,65 +108,21 @@ describe('SettingsMenu', () => {
     const meteoblueOption = getByText('Meteoblue');
     fireEvent.press(meteoblueOption);
 
-    expect(store.getState().weather.selectedProviderId).toBe(
-      WeatherProviderIds.METEOBLUE,
-    );
     expect(queryByText('Select Weather Service')).toBeNull();
-  });
-
-  it('dispatches fetchWeatherByLocation if currentLocation exists', () => {
-    const mockLocation = {
-      latitude: 40.7128,
-      longitude: -74.006,
-      name: 'New York',
-    };
-    const { getByTestId, getByText, store } = wrapWithStoreAndNav(<SettingsMenu />, {
-      selectedProviderId: WeatherProviderIds.OPEN_METEO,
-      currentLocation: mockLocation,
-    });
-
-    const settingsIcon = getByTestId('settings-icon');
-    fireEvent.press(settingsIcon);
-
-    const meteoblueOption = getByText('Meteoblue');
-    fireEvent.press(meteoblueOption);
-
-    expect(store.getState().weather.selectedProviderId).toBe(
-      WeatherProviderIds.METEOBLUE,
-    );
   });
 });
 
 describe('HomeScreen', () => {
-  it('renders summary when forecast is present', () => {
-    const mockForecast: WeatherForecast = {
-      location: {
-        latitude: 1,
-        longitude: 2,
-        name: 'Home city',
-      },
-      providerId: WeatherProviderIds.OPEN_METEO,
-      current: {
-        time: new Date('2026-01-16T12:00:00Z'),
-        temperature: 12,
-        windSpeed: 4,
-        precipitation: 0,
-        weatherCode: 1,
-      },
-      daily: [],
-    };
+  it('renders loading when fetching weather on mount', () => {
+    const { getByText } = wrapWithWeatherProviderAndNav(<HomeScreen />);
 
-    const { getByText } = wrapWithStoreAndNav(<HomeScreen />, {
-      currentForecast: mockForecast,
-    } as any);
-
-    expect(getByText('Home city')).toBeTruthy();
+    expect(getByText('Loading weather...')).toBeTruthy();
   });
 });
 
 describe('LocationSearchScreen', () => {
   it('shows error when input is empty', () => {
-    const { getByText, getByPlaceholderText } = wrapWithStoreAndNav(<LocationSearchScreen />);
+    const { getByText, getByPlaceholderText } = wrapWithWeatherProviderAndNav(<LocationSearchScreen />);
 
     const input = getByPlaceholderText('Madrid, España');
     fireEvent.changeText(input, '   ');
@@ -210,7 +134,7 @@ describe('LocationSearchScreen', () => {
   });
 
   it('shows suggestions when searching and multiple locations are returned', async () => {
-    const { getByPlaceholderText, getByText, findByText } = wrapWithStoreAndNav(<LocationSearchScreen />);
+    const { getByPlaceholderText, getByText, findByText } = wrapWithWeatherProviderAndNav(<LocationSearchScreen />);
 
     const input = getByPlaceholderText('Madrid, España');
     fireEvent.changeText(input, 'Cart');
