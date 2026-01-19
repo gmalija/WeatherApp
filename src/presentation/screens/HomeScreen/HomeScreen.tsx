@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
-  useColorScheme,
 } from 'react-native';
 
 import { useAppDispatch, useAppSelector } from '../../state/hooks';

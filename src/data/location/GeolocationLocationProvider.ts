@@ -17,18 +17,24 @@ export class GeolocationLocationProvider implements LocationProvider {
 
   async getCurrentLocation(): Promise<Location> {
     if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
+      const hasPermission = await PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location permission',
-          message: 'We use your location to show the weather where you are.',
-          buttonPositive: 'OK',
-          buttonNegative: 'Cancel',
-        },
       );
 
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        throw new Error('Location permission was not granted');
+      if (!hasPermission) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location permission',
+            message: 'We use your location to show the weather where you are.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+          },
+        );
+
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          throw new Error('Location permission denied. Please enable location permissions in your device settings to use current location weather.');
+        }
       }
     }
 
