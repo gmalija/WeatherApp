@@ -1,10 +1,10 @@
 import { useColorScheme } from 'react-native';
-import { useAppSelector } from '../state/hooks';
+import { useWeather } from '../viewModels/WeatherContext';
 import { getTheme, ColorScheme } from './index';
 
 export function useTheme() {
   const scheme: ColorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const providerId = useAppSelector(s => s.weather.selectedProviderId);
+  const { selectedProviderId } = useWeather();
 
-  return getTheme({ providerId, scheme });
+  return getTheme({ providerId: selectedProviderId, scheme });
 }

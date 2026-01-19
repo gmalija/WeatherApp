@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { useAppDispatch, useAppSelector } from '../state/hooks';
-import {
-  setSelectedProviderId,
-  fetchWeatherByLocation,
-} from '../state/weatherSlice';
+import { useWeather } from '../viewModels/WeatherContext';
 import { WeatherProviderId } from '../../domain/valueObjects/WeatherProviderId';
 import { WeatherProviderModal } from './WeatherProviderModal';
 import { Settings } from 'lucide-react-native';
@@ -14,14 +10,13 @@ import { useTheme } from '../theme/useTheme.tsx';
 export function SettingsMenu() {
   const theme = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
-  const dispatch = useAppDispatch();
-  const { currentLocation } = useAppSelector(state => state.weather);
+  const weather = useWeather();
 
-  const handleSelectProvider = (providerId: WeatherProviderId) => {
-    dispatch(setSelectedProviderId(providerId));
+  const handleSelectProvider = async (providerId: WeatherProviderId) => {
+    weather.setProviderId(providerId);
 
-    if (currentLocation) {
-      dispatch(fetchWeatherByLocation({ location: currentLocation }));
+    if (weather.currentLocation) {
+      await weather.fetchWeatherByLocation(weather.currentLocation);
     }
 
     setModalVisible(false);
