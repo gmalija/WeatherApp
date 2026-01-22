@@ -1,0 +1,32 @@
+export interface HttpClientRequestOptions {
+  query?: Record<string, string | number | boolean>;
+  headers?: Record<string, string>;
+}
+
+export interface HttpClient {
+  get<T>(url: string, options?: HttpClientRequestOptions): Promise<T>;
+}
+
+export class FetchHttpClient implements HttpClient {
+  async get<T>(url: string, options?: HttpClientRequestOptions): Promise<T> {
+    const { query, headers } = options ?? {};
+
+    const queryString = query
+      ? Object.entries(query)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+          .join('&')
+      : '';
+
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+
+    const response = await fetch(fullUrl, { headers });
+
+    if (!response.ok) {
+      throw new Error(`Http error ${response.status}`);
+    }
+
+    const json = (await response.json()) as T;
+
+    return json;
+  }
+}
