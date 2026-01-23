@@ -8,22 +8,23 @@ import { GetWeatherForCurrentLocationUseCase } from '../domain/useCases/GetWeath
 import { GeocodingService } from '../data/geocoding/GeocodingService.tsx';
 import { METEOBLUE_API_KEY } from '@env';
 
+// HTTP client
 const httpClient = new FetchHttpClient();
 
+// Services
+const geocodingService = new GeocodingService(httpClient);
 const openMeteoService = new OpenMeteoWeatherService(httpClient);
-
 const meteoblueService = new MeteoblueWeatherService(httpClient, METEOBLUE_API_KEY);
 
+// Repository
 const weatherRepository = new WeatherRepositoryImpl([openMeteoService, meteoblueService]);
 
-const geocodingService = new GeocodingService(httpClient);
+// Provider
 const locationProvider = new GeolocationLocationProvider(geocodingService);
 
+// Use cases
 const getWeatherByLocationUseCase = new GetWeatherByLocationUseCase(weatherRepository);
-const getWeatherForCurrentLocationUseCase = new GetWeatherForCurrentLocationUseCase(
-  locationProvider,
-  weatherRepository,
-);
+const getWeatherForCurrentLocationUseCase = new GetWeatherForCurrentLocationUseCase(locationProvider, weatherRepository);
 
 export const weatherDependencies = {
   weatherRepository,
