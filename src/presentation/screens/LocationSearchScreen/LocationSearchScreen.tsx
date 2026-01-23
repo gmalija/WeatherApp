@@ -22,6 +22,10 @@ import { MapPin } from 'lucide-react-native';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'>;
 
+function ResultSeparator() {
+  return <View style={styles.resultSeparator} />;
+}
+
 export function LocationSearchScreen() {
   const theme = useTheme();
   const navigation = useNavigation<Navigation>();
@@ -146,9 +150,7 @@ export function LocationSearchScreen() {
                   <Text style={[styles.resultName, {color: theme.colors.mutedText}]}>{item.name}</Text>
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => (
-                <View style={styles.resultSeparator} />
-              )}
+              ItemSeparatorComponent={ResultSeparator}
             />
           </View>
         )}
