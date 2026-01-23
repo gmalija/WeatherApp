@@ -4,4 +4,8 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|react-native-screens|react-redux|@reduxjs/toolkit|immer)',
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/__tests__/helpers/',
+  ],
 };

@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 
-import type { DailyWeather } from '../../domain/entities/WeatherForecast';
-import type { WeatherProviderId } from '../../domain/valueObjects/WeatherProviderId';
-import { getWeatherIcon } from '../utils/weatherIcons';
-import { useTheme } from '../theme/useTheme.tsx';
+import type {DailyWeather} from '../../domain/entities/WeatherForecast';
+import type {WeatherProviderId} from '../../domain/valueObjects/WeatherProviderId';
+import {getWeatherIcon} from '../utils/weatherIcons';
+import {useTheme} from '../contexts';
 
 interface Props {
   providerId: WeatherProviderId;
@@ -12,12 +12,16 @@ interface Props {
 }
 
 function Separator() {
-  const theme = useTheme();
-  return <View style={[styles.separator, { backgroundColor: theme.colors.separator }]} />;
+  const {theme} = useTheme();
+  return (
+    <View
+      style={[styles.separator, {backgroundColor: theme.colors.separator}]}
+    />
+  );
 }
 
-export function DailyForecastList({ providerId, days }: Props) {
-  const theme = useTheme();
+export function DailyForecastList({providerId, days}: Props) {
+  const {theme} = useTheme();
 
   return (
     <View style={styles.container}>

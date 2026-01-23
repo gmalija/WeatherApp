@@ -218,17 +218,3 @@ export function getWeatherDescription(
   const { desc } = getProviderMaps(providerId);
   return desc[weatherCode] ?? `Unknown (${weatherCode})`;
 }
-
-/**
- * Optional: single function returning both fields.
- */
-export function getWeatherUI(
-  weatherCode: number,
-  providerId: WeatherProviderId,
-) {
-  const { icon, desc } = getProviderMaps(providerId);
-  return {
-    icon: icon[weatherCode] ?? FALLBACK_ICON,
-    description: desc[weatherCode] ?? `Unknown (${weatherCode})`,
-  };
-}

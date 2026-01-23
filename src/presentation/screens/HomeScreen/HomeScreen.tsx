@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -8,84 +8,92 @@ import {
   RefreshControl,
 } from 'react-native';
 
-import { useWeather } from '../../viewModels/WeatherContext';
-import { WeatherSummaryCard } from '../../components/WeatherSummaryCard';
-import { DailyForecastList } from '../../components/DailyForecastList';
-import { useTheme } from '../../theme/useTheme.tsx';
+import {
+  useWeatherByLocation,
+  useWeatherForCurrentLocation,
+} from '../../hooks/useWeatherQueries';
+import {useTheme} from '../../contexts';
+import {useAppSelector} from '../../state/hooks';
+import {WeatherSummaryCard} from '../../components/WeatherSummaryCard';
+import {DailyForecastList} from '../../components/DailyForecastList';
 
 export function HomeScreen() {
-  const theme = useTheme();
-  const weather = useWeather();
+  // Get theme and provider ID from ThemeContext
+  const {theme, providerId} = useTheme();
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Get selected location from Redux
+  const selectedLocation = useAppSelector(
+    state => state.app.preferences.selectedLocation,
+  );
 
-  // Reset refreshing state when loading completes
-  useEffect(() => {
-    if (weather.status !== 'loading' && isRefreshing) {
-      setIsRefreshing(false);
-    }
-  }, [weather.status, isRefreshing]);
+  // Use the appropriate React Query hook based on whether we have a selected location
+  const locationQuery = useWeatherByLocation(selectedLocation, providerId, {
+    enabled: selectedLocation !== null,
+  });
+  const currentLocationQuery = useWeatherForCurrentLocation(providerId, {
+    enabled: selectedLocation === null,
+  });
 
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    if (weather.currentLocation) {
-      weather.fetchWeatherByLocation(weather.currentLocation);
-    } else {
-      weather.fetchWeatherForCurrentLocation();
-    }
-  };
+  // Determine which query is active
+  const activeQuery = selectedLocation ? locationQuery : currentLocationQuery;
+  const {data, isLoading, isError, error, refetch, isFetching} = activeQuery;
 
   let content: React.ReactNode = null;
 
-  if (weather.status === 'loading' && !weather.currentForecast) {
+  // Initial loading state (no data yet)
+  if (isLoading && !data) {
     content = (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color={theme.colors.accent} />
-        <Text style={[styles.statusText, { color: theme.colors.mutedText }]}>Loading weather...</Text>
-      </View>
-    );
-  } else if (weather.status === 'error' && !weather.currentForecast) {
-    content = (
-      <View style={styles.centered}>
-        <Text
-          style={[
-            styles.errorText,
-            { color: theme.colors.error },
-          ]}
-        >
-          {weather.error ?? 'Failed to load weather'}
+        <ActivityIndicator size="large" color={theme.colors.accent} />
+        <Text style={[styles.statusText, {color: theme.colors.mutedText}]}>
+          Loading weather...
         </Text>
       </View>
     );
-  } else if (weather.currentForecast) {
+  } else if (isError && !data) {
+    // Error state (no cached data available)
+    content = (
+      <View style={styles.centered}>
+        <Text style={[styles.errorText, {color: theme.colors.error}]}>
+          {error?.message ?? 'Failed to load weather'}
+        </Text>
+      </View>
+    );
+  } else if (data) {
+    // Success state (have weather data)
     content = (
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
+            refreshing={isFetching}
+            onRefresh={() => refetch()}
             tintColor={theme.colors.accent}
           />
-        }
-      >
-        <Text style={[styles.refreshHint, { color: theme.colors.mutedText }]}>Pull down to refresh the forecast</Text>
-        <WeatherSummaryCard forecast={weather.currentForecast} />
-        <DailyForecastList
-          providerId={weather.currentForecast.providerId}
-          days={weather.currentForecast.daily}
-        />
+        }>
+        <Text style={[styles.refreshHint, {color: theme.colors.mutedText}]}>
+          Pull down to refresh the forecast
+        </Text>
+        <WeatherSummaryCard forecast={data} />
+        <DailyForecastList providerId={data.providerId} days={data.daily} />
       </ScrollView>
     );
   } else {
+    // Empty state (no location selected)
     content = (
       <View style={styles.centered}>
-        <Text style={[styles.statusText, { color: theme.colors.mutedText }]}>Search for a location to see the weather.</Text>
+        <Text style={[styles.statusText, {color: theme.colors.mutedText}]}>
+          Search for a location to see the weather.
+        </Text>
       </View>
     );
   }
 
-  return <View style={[styles.container, { backgroundColor: theme.colors.background }]}>{content}</View>;
+  return (
+    <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
+      {content}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

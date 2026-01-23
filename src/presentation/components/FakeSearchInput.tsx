@@ -1,27 +1,34 @@
 import React from 'react';
-import { Pressable, View, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {Pressable, View, Text, StyleSheet} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import { useWeather } from '../viewModels/WeatherContext';
-import type { RootStackParamList } from '../../navigation/types';
-import { useTheme } from '../theme/useTheme.tsx';
+import {useTheme} from '../contexts';
+import {useAppSelector} from '../state/hooks';
+import type {RootStackParamList} from '../../navigation/types';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export function FakeSearchInput() {
-  const theme = useTheme();
+  const {theme} = useTheme();
   const navigation = useNavigation<Navigation>();
-  const { currentLocation } = useWeather();
-  const label = currentLocation ? currentLocation.name : 'Search location';
+  const selectedLocation = useAppSelector(
+    state => state.app.preferences.selectedLocation,
+  );
+  const label = selectedLocation ? selectedLocation.name : 'Search location';
 
   return (
     <Pressable
       onPress={() => navigation.navigate('LocationSearch')}
-      style={[styles.container, { borderColor: theme.colors.border, backgroundColor: theme.colors.background }]}
-    >
+      style={[
+        styles.container,
+        {
+          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.background,
+        },
+      ]}>
       <View style={styles.inner}>
-        <Text numberOfLines={1} style={[styles.text, { color: theme.colors.text }]}>
+        <Text numberOfLines={1} style={[styles.text, {color: theme.colors.text}]}>
           {label}
         </Text>
       </View>
