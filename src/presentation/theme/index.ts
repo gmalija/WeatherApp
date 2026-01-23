@@ -10,6 +10,7 @@ export interface GeneralColors {
   surface: string;
   text: string;
   mutedText: string;
+  buttonText: string;
   border: string;
   separator: string;
   primary: string;
@@ -25,6 +26,7 @@ export const lightColors: GeneralColors = {
   surface: '#f3f4f6',
   text: '#111827',
   mutedText: '#6b7280',
+  buttonText: '#ffffff',
   border: '#d1d5db',
   separator: '#e5e7eb',
   primary: '#2563eb',
@@ -40,6 +42,7 @@ export const darkColors: GeneralColors = {
   surface: '#020617',
   text: '#f9fafb',
   mutedText: '#9ca3af',
+  buttonText: '#ffffff',
   border: '#374151',
   separator: '#4b5563',
   primary: '#2563eb',
@@ -120,6 +123,7 @@ export interface AppTheme {
     surface: string;
     text: string;
     mutedText: string;
+    buttonText: string;
     border: string;
     separator: string;
 
@@ -172,6 +176,7 @@ export function getTheme(params: {
       surface: general.surface,
       text: general.text,
       mutedText: general.mutedText,
+      buttonText: general.buttonText,
       border: general.border,
       separator: general.separator,
 
