@@ -6,13 +6,13 @@ import { GeolocationLocationProvider } from '../data/location/GeolocationLocatio
 import { GetWeatherByLocationUseCase } from '../domain/useCases/GetWeatherByLocationUseCase';
 import { GetWeatherForCurrentLocationUseCase } from '../domain/useCases/GetWeatherForCurrentLocationUseCase';
 import { GeocodingService } from '../data/geocoding/GeocodingService.tsx';
+import { METEOBLUE_API_KEY } from '@env';
 
 const httpClient = new FetchHttpClient();
 
 const openMeteoService = new OpenMeteoWeatherService(httpClient);
 
-const meteoblueApiKey = 'xEeouDJW08hQfb41';
-const meteoblueService = new MeteoblueWeatherService(httpClient, meteoblueApiKey);
+const meteoblueService = new MeteoblueWeatherService(httpClient, METEOBLUE_API_KEY);
 
 const weatherRepository = new WeatherRepositoryImpl([openMeteoService, meteoblueService]);
 
