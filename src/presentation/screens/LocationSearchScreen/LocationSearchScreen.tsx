@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import {
   View,
   Text,
@@ -10,76 +10,111 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import { useWeather } from '../../viewModels/WeatherContext';
-import type { RootStackParamList } from '../../../navigation/types';
-import type { Location } from '../../../domain/entities/Location';
-import { weatherDependencies } from '../../../application/weatherDependencies';
-import { useTheme } from '../../theme/useTheme.tsx';
-import { MapPin } from 'lucide-react-native';
+import {useLocationSearch} from '../../hooks/useWeatherQueries';
+import {useTheme} from '../../contexts';
+import {useAppDispatch} from '../../state/hooks';
+import {
+  setSelectedLocation,
+  setLocationSearchQuery,
+  clearLocationSearchForm,
+} from '../../state/appSlice';
+import type {RootStackParamList} from '../../../navigation/types';
+import type {Location} from '../../../domain/entities/Location';
+import {MapPin} from 'lucide-react-native';
 
-type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'>;
+type Navigation = NativeStackNavigationProp<
+  RootStackParamList,
+  'LocationSearch'
+>;
 
 function ResultSeparator() {
   return <View style={styles.resultSeparator} />;
 }
 
 export function LocationSearchScreen() {
-  const theme = useTheme();
+  // Get theme from ThemeContext
+  const {theme} = useTheme();
   const navigation = useNavigation<Navigation>();
-  const weather = useWeather();
+  const dispatch = useAppDispatch();
 
-  const [value, setValue] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<Location[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  // Local state for search input and debouncing
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const runSearch = async (query: string, { navigateOnSingle }: { navigateOnSingle: boolean }) => {
-    const trimmed = query.trim();
+  // React Query hook for location search (debounced)
+  const {data: results = [], isLoading: isSearching} =
+    useLocationSearch(debouncedQuery);
 
-    if (!trimmed) {
-      setError('Location is required');
-      setResults([]);
-      return;
-    }
+  // Update Redux form state
+  const handleSearchChange = useCallback(
+    (text: string) => {
+      setSearchQuery(text);
+      dispatch(setLocationSearchQuery(text));
 
-    setError(null);
-    setIsSearching(true);
+      // Clear local error
+      if (localError) {
+        setLocalError(null);
+      }
 
-    try {
-      const locations = await weatherDependencies.geocodingService.searchLocationsByName(trimmed);
+      const trimmed = text.trim();
 
-      if (!locations.length) {
-        setError('Location not found');
-        setResults([]);
+      // Cancel pending search if input is too short
+      if (!trimmed || trimmed.length < 3) {
+        setDebouncedQuery('');
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current);
+          searchTimeoutRef.current = null;
+        }
         return;
       }
 
-      setResults(locations);
-
-      if (navigateOnSingle && locations.length === 1) {
-        await weather.fetchWeatherByLocation(locations[0]);
-        navigation.goBack();
+      // Debounce the search query
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
       }
-    } catch (err: any) {
-      setError(err?.message ?? 'Failed to find location');
-      setResults([]);
-    } finally {
-      setIsSearching(false);
+
+      searchTimeoutRef.current = setTimeout(() => {
+        setDebouncedQuery(trimmed);
+      }, 400);
+    },
+    [dispatch, localError],
+  );
+
+  const onSubmit = useCallback(() => {
+    const trimmed = searchQuery.trim();
+
+    if (!trimmed) {
+      setLocalError('Location is required');
+      return;
     }
-  };
 
-  const onSubmit = async () => {
-    await runSearch(value, { navigateOnSingle: true });
-  };
+    if (!results.length) {
+      setLocalError('Location not found');
+      return;
+    }
 
-  const onSelectLocation = async (location: Location) => {
-    await weather.fetchWeatherByLocation(location);
-    navigation.goBack();
-  };
+    // If only one result, select it automatically
+    if (results.length === 1) {
+      dispatch(setSelectedLocation(results[0]));
+      dispatch(clearLocationSearchForm());
+      navigation.goBack();
+    }
+  }, [searchQuery, results, dispatch, navigation]);
+
+  const onSelectLocation = useCallback(
+    (location: Location) => {
+      // Update Redux with selected location
+      dispatch(setSelectedLocation(location));
+      dispatch(clearLocationSearchForm());
+      navigation.goBack();
+    },
+    [dispatch, navigation],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -87,67 +122,58 @@ export function LocationSearchScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={[styles.label, { color: theme.colors.mutedText }]}>
+        <Text style={[styles.label, {color: theme.colors.mutedText}]}>
           Search location
         </Text>
         <TextInput
-          value={value}
-          onChangeText={text => {
-            setValue(text);
-            if (error) {
-              setError(null);
-            }
-
-            const trimmed = text.trim();
-
-            // Clear results and cancel any pending search if input is empty or too short
-            if (!trimmed || trimmed.length < 3) {
-              setResults([]);
-              if (searchTimeoutRef.current) {
-                clearTimeout(searchTimeoutRef.current);
-                searchTimeoutRef.current = null;
-              }
-              return;
-            }
-
-            if (searchTimeoutRef.current) {
-              clearTimeout(searchTimeoutRef.current);
-            }
-
-            // Small debounce so we don't hit the API on every keystroke
-            searchTimeoutRef.current = setTimeout(() => {
-              runSearch(text, { navigateOnSingle: false });
-            }, 400);
-          }}
+          value={searchQuery}
+          onChangeText={handleSearchChange}
           placeholder={'Madrid, España'}
           placeholderTextColor={theme.colors.mutedText}
           keyboardType={'default'}
           autoCapitalize={'none'}
           autoCorrect={false}
-          style={[styles.input, {borderColor: theme.colors.border, color: theme.colors.text, backgroundColor: theme.colors.headerBackground}]}
+          style={[
+            styles.input,
+            {
+              borderColor: theme.colors.border,
+              color: theme.colors.text,
+              backgroundColor: theme.colors.headerBackground,
+            },
+          ]}
           onSubmitEditing={onSubmit}
           returnKeyType={'search'}
         />
-        {error ? <Text style={[styles.error, {color: theme.colors.error}]}>{error}</Text> : null}
-        <Pressable onPress={onSubmit} style={[styles.button, { backgroundColor: theme.colors.primary }]}>
-          <Text style={[styles.buttonText, { color: theme.colors.text }]}>
+        {localError ? (
+          <Text style={[styles.error, {color: theme.colors.error}]}>
+            {localError}
+          </Text>
+        ) : null}
+        <Pressable
+          onPress={onSubmit}
+          style={[styles.button, {backgroundColor: theme.colors.primary}]}>
+          <Text style={[styles.buttonText, {color: theme.colors.text}]}>
             {isSearching ? 'Searching...' : 'Search'}
           </Text>
         </Pressable>
 
-        {results.length > 0 && (
+        {results && results.length > 0 && (
           <View style={styles.resultsContainer}>
-            <Text style={[styles.resultsTitle, {color: theme.colors.text}]}>Select a location</Text>
+            <Text style={[styles.resultsTitle, {color: theme.colors.text}]}>
+              Select a location
+            </Text>
             <FlatList
               data={results}
               keyExtractor={item => `${item.latitude},${item.longitude}`}
-              renderItem={({ item }) => (
+              renderItem={({item}) => (
                 <TouchableOpacity
                   style={styles.resultItem}
-                  onPress={() => onSelectLocation(item)}
-                >
-                  <MapPin />
-                  <Text style={[styles.resultName, {color: theme.colors.mutedText}]}>{item.name}</Text>
+                  onPress={() => onSelectLocation(item)}>
+                  <MapPin color={theme.colors.primary} size={20} />
+                  <Text
+                    style={[styles.resultName, {color: theme.colors.text}]}>
+                    {item.name}
+                  </Text>
                 </TouchableOpacity>
               )}
               ItemSeparatorComponent={ResultSeparator}

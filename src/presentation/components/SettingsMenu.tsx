@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import React, {useState} from 'react';
+import {Pressable, StyleSheet} from 'react-native';
 
-import { useWeather } from '../viewModels/WeatherContext';
-import { WeatherProviderId } from '../../domain/valueObjects/WeatherProviderId';
-import { WeatherProviderModal } from './WeatherProviderModal';
-import { Settings } from 'lucide-react-native';
-import { useTheme } from '../theme/useTheme.tsx';
+import {useTheme} from '../contexts';
+import {useInvalidateWeather} from '../hooks/useWeatherQueries';
+import type {WeatherProviderId} from '../../domain/valueObjects/WeatherProviderId';
+import {WeatherProviderModal} from './WeatherProviderModal';
+import {Settings} from 'lucide-react-native';
 
 export function SettingsMenu() {
-  const theme = useTheme();
+  const {theme, setProviderId} = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
-  const weather = useWeather();
+  const invalidateWeather = useInvalidateWeather();
 
-  const handleSelectProvider = async (providerId: WeatherProviderId) => {
-    weather.setProviderId(providerId);
+  const handleSelectProvider = (providerId: WeatherProviderId) => {
+    // Update theme provider (triggers theme change)
+    setProviderId(providerId);
 
-    if (weather.currentLocation) {
-      await weather.fetchWeatherByLocation(weather.currentLocation);
-    }
+    // Invalidate all weather queries to refetch with new provider
+    invalidateWeather();
 
     setModalVisible(false);
   };

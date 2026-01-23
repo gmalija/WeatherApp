@@ -1,21 +1,26 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {Pressable, Text, StyleSheet} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import { useWeather } from '../viewModels/WeatherContext';
-import type { RootStackParamList } from '../../navigation/types';
-import { useTheme } from '../theme/useTheme.tsx';
+import {useTheme} from '../contexts';
+import {useAppDispatch} from '../state/hooks';
+import {setSelectedLocation} from '../state/appSlice';
+import type {RootStackParamList} from '../../navigation/types';
 
-type Navigation = NativeStackNavigationProp<RootStackParamList, 'LocationSearch'>;
+type Navigation = NativeStackNavigationProp<
+  RootStackParamList,
+  'LocationSearch'
+>;
 
 export function CurrentLocationHeaderButton() {
-  const theme = useTheme();
+  const {theme} = useTheme();
   const navigation = useNavigation<Navigation>();
-  const weather = useWeather();
+  const dispatch = useAppDispatch();
 
-  const onPress = async () => {
-    await weather.fetchWeatherForCurrentLocation();
+  const onPress = () => {
+    // Set location to null to trigger current location fetch
+    dispatch(setSelectedLocation(null));
     navigation.goBack();
   };
 
