@@ -19,6 +19,14 @@ export class MeteoblueWeatherService implements WeatherProviderService {
     this.httpClient = httpClient;
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
+
+    // Debug logging to verify API key is loaded
+    if (!apiKey || apiKey === 'undefined') {
+      console.error('❌ Meteoblue API key is missing or undefined!');
+      console.error('Make sure METEOBLUE_API_KEY is set in your .env file');
+    } else {
+      console.log('✅ Meteoblue API key loaded:', apiKey.substring(0, 4) + '***');
+    }
   }
 
   async getWeatherByLocation(location: Location): Promise<WeatherForecast> {
@@ -27,6 +35,13 @@ export class MeteoblueWeatherService implements WeatherProviderService {
       lon: location.longitude,
       apikey: this.apiKey,
     };
+
+    console.log('🌤️ Meteoblue API Request:', {
+      baseUrl: this.baseUrl,
+      lat: location.latitude,
+      lon: location.longitude,
+      apiKeyPresent: !!this.apiKey,
+    });
 
     const response = await this.httpClient.get<MeteoblueResponse>(
       this.baseUrl,
