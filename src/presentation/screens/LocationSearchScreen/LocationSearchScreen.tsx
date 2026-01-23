@@ -122,7 +122,7 @@ export function LocationSearchScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={[styles.label, {color: theme.colors.mutedText}]}>
+        <Text style={[styles.label, { color: theme.colors.mutedText }]}>
           Search location
         </Text>
         <TextInput
@@ -145,33 +145,36 @@ export function LocationSearchScreen() {
           returnKeyType={'search'}
         />
         {localError ? (
-          <Text style={[styles.error, {color: theme.colors.error}]}>
+          <Text style={[styles.error, { color: theme.colors.error }]}>
             {localError}
           </Text>
         ) : null}
         <Pressable
           onPress={onSubmit}
-          style={[styles.button, {backgroundColor: theme.colors.primary}]}>
-          <Text style={[styles.buttonText, {color: theme.colors.text}]}>
+          style={[styles.button, { backgroundColor: theme.colors.primary }]}
+        >
+          <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>
             {isSearching ? 'Searching...' : 'Search'}
           </Text>
         </Pressable>
 
         {results && results.length > 0 && (
           <View style={styles.resultsContainer}>
-            <Text style={[styles.resultsTitle, {color: theme.colors.text}]}>
+            <Text style={[styles.resultsTitle, { color: theme.colors.text }]}>
               Select a location
             </Text>
             <FlatList
               data={results}
               keyExtractor={item => `${item.latitude},${item.longitude}`}
-              renderItem={({item}) => (
+              renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.resultItem}
-                  onPress={() => onSelectLocation(item)}>
+                  onPress={() => onSelectLocation(item)}
+                >
                   <MapPin color={theme.colors.primary} size={20} />
                   <Text
-                    style={[styles.resultName, {color: theme.colors.text}]}>
+                    style={[styles.resultName, { color: theme.colors.text }]}
+                  >
                     {item.name}
                   </Text>
                 </TouchableOpacity>
