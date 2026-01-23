@@ -12,8 +12,8 @@ import {
   WeatherProviderId,
   WeatherProviderIds,
 } from '../../domain/valueObjects/WeatherProviderId';
-import { useTheme } from '../theme/useTheme';
-import { getTheme } from '../theme';
+import {useTheme} from '../contexts';
+import {getTheme} from '../theme';
 
 const providers = [
   { id: WeatherProviderIds.OPEN_METEO, label: 'Open-Meteo' },
@@ -31,7 +31,7 @@ export function WeatherProviderModal({
   onClose,
   onSelectProvider,
 }: Props) {
-  const theme = useTheme();
+  const {theme} = useTheme();
 
   return (
     <Modal

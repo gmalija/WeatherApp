@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-import type { WeatherForecast } from '../../domain/entities/WeatherForecast';
-import { getWeatherIcon, getWeatherDescription } from '../utils/weatherIcons';
-import { useTheme } from '../theme/useTheme.tsx';
+import type {WeatherForecast} from '../../domain/entities/WeatherForecast';
+import {getWeatherIcon, getWeatherDescription} from '../utils/weatherIcons';
+import {useTheme} from '../contexts';
 
 interface Props {
   forecast: WeatherForecast;
 }
 
-export function WeatherSummaryCard({ forecast }: Props) {
-  const theme = useTheme();
-  const { location, current, providerId } = forecast;
+export function WeatherSummaryCard({forecast}: Props) {
+  const {theme} = useTheme();
+  const {location, current, providerId} = forecast;
   const weatherIcon = getWeatherIcon(current.weatherCode, providerId);
   const weatherDescription = getWeatherDescription(current.weatherCode, providerId);
 

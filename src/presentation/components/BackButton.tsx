@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft } from 'lucide-react-native';
 
 import type { RootStackParamList } from '../../navigation/types';
-import { useTheme } from '../theme/useTheme.tsx';
+import {useTheme} from '../contexts';
 
 type Navigation = NativeStackNavigationProp<
   RootStackParamList,
@@ -14,7 +14,7 @@ type Navigation = NativeStackNavigationProp<
 
 export function BackButton() {
   const navigation = useNavigation<Navigation>();
-  const theme = useTheme();
+  const {theme} = useTheme();
 
   const onPress = () => {
     navigation.goBack();

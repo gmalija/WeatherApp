@@ -7,12 +7,12 @@ import { CurrentLocationHeaderButton } from '../presentation/components/CurrentL
 import { RootStackParamList } from './types';
 import { SettingsMenu } from '../presentation/components/SettingsMenu.tsx';
 import { BackButton } from '../presentation/components/BackButton.tsx';
-import { useTheme } from '../presentation/theme/useTheme.tsx';
+import { useTheme } from '../presentation/contexts';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const theme = useTheme();
+  const {theme} = useTheme();
 
   return (
     <Stack.Navigator
