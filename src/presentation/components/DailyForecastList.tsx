@@ -11,6 +11,11 @@ interface Props {
   days: DailyWeather[];
 }
 
+function Separator() {
+  const theme = useTheme();
+  return <View style={[styles.separator, { backgroundColor: theme.colors.separator }]} />;
+}
+
 export function DailyForecastList({ providerId, days }: Props) {
   const theme = useTheme();
 
@@ -43,9 +48,7 @@ export function DailyForecastList({ providerId, days }: Props) {
             </View>
           );
         }}
-        ItemSeparatorComponent={() => (
-          <View style={[styles.separator, { backgroundColor: theme.colors.separator }]} />
-        )}
+        ItemSeparatorComponent={Separator}
       />
     </View>
   );
