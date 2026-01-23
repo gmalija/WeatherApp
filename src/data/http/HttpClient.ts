@@ -22,7 +22,20 @@ export class FetchHttpClient implements HttpClient {
     const response = await fetch(fullUrl, { headers });
 
     if (!response.ok) {
-      throw new Error(`Http error ${response.status}`);
+      let errorMessage = `HTTP ${response.status} ${response.statusText}`;
+
+      try {
+        const errorBody = await response.text();
+        if (errorBody) {
+          console.error('API Error Response:', errorBody);
+          errorMessage += ` - ${errorBody}`;
+        }
+      } catch (e) {
+        // Ignore if we can't read the error body
+      }
+
+      console.error('Failed request URL:', fullUrl.replace(/apikey=[^&]+/, 'apikey=***'));
+      throw new Error(errorMessage);
     }
 
     const json = (await response.json()) as T;
