@@ -25,7 +25,7 @@ Data flows from API responses through mappers to domain entities, then to view m
 
 ## Prerequisites
 
-- Node.js (version 18 or later)
+- Node.js (version 20+)
 - React Native development environment set up (see [React Native docs](https://reactnative.dev/docs/set-up-your-environment))
 - For iOS: Xcode and CocoaPods
 - For Android: Android Studio and SDK
@@ -48,6 +48,18 @@ Data flows from API responses through mappers to domain entities, then to view m
    bundle install
    bundle exec pod install
    ```
+
+4. Set up environment variables:
+   ```sh
+   cp .env.dev .env
+   ```
+
+   Then edit `.env` and add your Meteoblue API key:
+   ```
+   METEOBLUE_API_KEY=your_api_key_here
+   ```
+
+   Get your API key from [Meteoblue Weather API](https://www.meteoblue.com/en/weather-api).
 
 ## Running the App
 

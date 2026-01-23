@@ -34,8 +34,8 @@ export function RootNavigator() {
         component={HomeScreen}
         options={{
           headerTitle: '',
-          headerLeft: () => <FakeSearchInput />,
-          headerRight: () => <SettingsMenu />,
+          headerLeft: FakeSearchInput,
+          headerRight: SettingsMenu,
         }}
       />
       <Stack.Screen
@@ -43,8 +43,8 @@ export function RootNavigator() {
         component={LocationSearchScreen}
         options={{
           headerTitle: '',
-          headerLeft: () => <BackButton />,
-          headerRight: () => <CurrentLocationHeaderButton />,
+          headerLeft: BackButton,
+          headerRight: CurrentLocationHeaderButton,
         }}
       />
     </Stack.Navigator>

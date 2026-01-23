@@ -5,7 +5,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { FakeSearchInput } from '../../src/presentation/components/FakeSearchInput';
 import { HomeScreen } from '../../src/presentation/screens/HomeScreen/HomeScreen';
 import { LocationSearchScreen } from '../../src/presentation/screens/LocationSearchScreen/LocationSearchScreen';
-import { WeatherProviderIds } from '../../src/domain/valueObjects/WeatherProviderId';
 import type { WeatherForecast } from '../../src/domain/entities/WeatherForecast';
 import { SettingsMenu } from '../../src/presentation/components/SettingsMenu.tsx';
 import { WeatherProvider } from '../../src/presentation/viewModels/WeatherContext';
